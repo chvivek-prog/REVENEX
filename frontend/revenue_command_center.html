@@ -3650,6 +3650,221 @@ strong,b{
 }
 </style>
 
+
+<style id="REVENEX_MOBILE_ISOLATED_LAYER_V1">
+@media screen and (max-width:700px){
+
+  html,body{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow-x:hidden !important;
+  }
+
+  /* Never show the old desktop sidebar on mobile */
+  body .sidebar{
+    display:none !important;
+  }
+
+  body .app{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+
+  body .main{
+    display:block !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  /* Real mobile header area */
+  body .top{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    padding:88px 18px 24px !important;
+    margin:0 !important;
+  }
+
+  body #title{
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow-wrap:anywhere !important;
+  }
+
+  /* Completely suppress every previous mobile-menu attempt */
+  #revenexMobileMenuButton,
+  #revenexMobileDrawer,
+  #revenexMobileBackdrop,
+  #revenexCleanMobileMenu,
+  #revenexCleanMobileDrawer,
+  #revenexCleanMobileBackdrop{
+    display:none !important;
+  }
+
+  /* OUR isolated hamburger */
+  #RX_ISOLATED_HAMBURGER{
+    position:fixed !important;
+    left:14px !important;
+    top:12px !important;
+
+    width:58px !important;
+    height:58px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    gap:6px !important;
+    padding:0 !important;
+    margin:0 !important;
+
+    border:1px solid rgba(100,170,255,.42) !important;
+    border-radius:15px !important;
+
+    background:#102b4b !important;
+    color:#ffffff !important;
+
+    z-index:2147483640 !important;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.4) !important;
+
+    cursor:pointer !important;
+    -webkit-tap-highlight-color:transparent !important;
+  }
+
+  #RX_ISOLATED_HAMBURGER span{
+    display:block !important;
+    width:30px !important;
+    height:4px !important;
+    min-height:4px !important;
+    margin:0 !important;
+    padding:0 !important;
+
+    background:#ffffff !important;
+    border-radius:5px !important;
+  }
+
+  /* Login always sits above the hamburger */
+  body #revenexLogin{
+    z-index:2147483647 !important;
+    box-sizing:border-box !important;
+
+    align-items:flex-start !important;
+    justify-content:center !important;
+
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+
+    padding:16px !important;
+  }
+
+  body #revenexLogin .rx-login-shell{
+    width:100% !important;
+    max-width:1080px !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 auto !important;
+    flex-shrink:0 !important;
+  }
+
+  /* Isolated drawer */
+  #RX_ISOLATED_DRAWER{
+    position:fixed !important;
+    left:0 !important;
+    top:0 !important;
+    bottom:0 !important;
+
+    width:min(300px,82vw) !important;
+    max-width:82vw !important;
+
+    box-sizing:border-box !important;
+
+    padding:82px 14px 20px !important;
+
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+
+    background:#0b1421 !important;
+
+    border-right:1px solid rgba(255,255,255,.1) !important;
+
+    transform:translateX(-110%) !important;
+    transition:transform .22s ease !important;
+
+    z-index:2147483639 !important;
+
+    box-shadow:18px 0 50px rgba(0,0,0,.5) !important;
+  }
+
+  #RX_ISOLATED_DRAWER.rx-open{
+    transform:translateX(0) !important;
+  }
+
+  #RX_ISOLATED_DRAWER button{
+    display:block !important;
+
+    width:100% !important;
+    min-height:48px !important;
+
+    box-sizing:border-box !important;
+
+    margin:4px 0 !important;
+    padding:12px 14px !important;
+
+    border:0 !important;
+    border-radius:10px !important;
+
+    background:transparent !important;
+    color:#dbe5f2 !important;
+
+    text-align:left !important;
+    font:inherit !important;
+
+    cursor:pointer !important;
+  }
+
+  #RX_ISOLATED_DRAWER button:active{
+    background:rgba(100,170,255,.15) !important;
+  }
+
+  #RX_ISOLATED_BACKDROP{
+    position:fixed !important;
+    inset:0 !important;
+
+    display:none !important;
+
+    background:rgba(0,0,0,.5) !important;
+
+    z-index:2147483638 !important;
+  }
+
+  #RX_ISOLATED_BACKDROP.rx-open{
+    display:block !important;
+  }
+}
+
+@media screen and (min-width:701px){
+
+  #RX_ISOLATED_HAMBURGER,
+  #RX_ISOLATED_DRAWER,
+  #RX_ISOLATED_BACKDROP{
+    display:none !important;
+  }
+
+}
+</style>
+
 </head>
 
 <body>
@@ -16839,6 +17054,146 @@ window.addEventListener("revenex-analysis-updated", function () {
     document.addEventListener("DOMContentLoaded",init);
   }else{
     init();
+  }
+
+})();
+</script>
+
+
+<script id="REVENEX_MOBILE_ISOLATED_LAYER_V1_SCRIPT">
+(function(){
+
+  function start(){
+
+    if(document.getElementById("RX_ISOLATED_HAMBURGER")) return;
+
+    var nav = document.querySelector(".sidebar .nav");
+    if(!nav) return;
+
+    var button = document.createElement("button");
+
+    button.id = "RX_ISOLATED_HAMBURGER";
+    button.type = "button";
+    button.setAttribute("aria-label","Open navigation");
+    button.setAttribute("aria-expanded","false");
+
+    button.innerHTML =
+      "<span></span><span></span><span></span>";
+
+    var drawer = document.createElement("nav");
+
+    drawer.id = "RX_ISOLATED_DRAWER";
+    drawer.setAttribute("aria-label","REVENEX navigation");
+
+    var backdrop = document.createElement("div");
+
+    backdrop.id = "RX_ISOLATED_BACKDROP";
+
+    nav.querySelectorAll("button[data-page]").forEach(function(oldButton){
+
+      var item = document.createElement("button");
+
+      item.type = "button";
+      item.textContent = oldButton.textContent.trim();
+
+      item.addEventListener("click",function(){
+
+        oldButton.click();
+
+        drawer.classList.remove("rx-open");
+        backdrop.classList.remove("rx-open");
+
+        button.setAttribute("aria-expanded","false");
+
+      });
+
+      drawer.appendChild(item);
+
+    });
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(drawer);
+    document.body.appendChild(button);
+
+    function close(){
+
+      drawer.classList.remove("rx-open");
+      backdrop.classList.remove("rx-open");
+
+      button.setAttribute("aria-expanded","false");
+
+    }
+
+    button.addEventListener("click",function(){
+
+      var open = !drawer.classList.contains("rx-open");
+
+      drawer.classList.toggle("rx-open",open);
+      backdrop.classList.toggle("rx-open",open);
+
+      button.setAttribute(
+        "aria-expanded",
+        open ? "true" : "false"
+      );
+
+    });
+
+    backdrop.addEventListener("click",close);
+
+    /*
+     * Only authentication controls whether OUR button is visible.
+     * Existing login/dashboard code is not modified.
+     */
+    function sync(){
+
+      var mobile = window.innerWidth <= 700;
+
+      var authenticated =
+        sessionStorage.getItem("revenex_authenticated") === "true";
+
+      if(mobile && authenticated){
+
+        button.style.setProperty(
+          "display",
+          "flex",
+          "important"
+        );
+
+      }else{
+
+        button.style.setProperty(
+          "display",
+          "none",
+          "important"
+        );
+
+        close();
+
+      }
+
+    }
+
+    sync();
+
+    window.addEventListener("resize",sync);
+
+    /*
+     * Catch existing sign-in/sign-out actions without modifying them.
+     */
+    window.addEventListener("storage",sync);
+
+    setInterval(sync,500);
+
+  }
+
+  if(document.readyState === "loading"){
+
+    document.addEventListener("DOMContentLoaded",start);
+
+  }else{
+
+    start();
+
   }
 
 })();
