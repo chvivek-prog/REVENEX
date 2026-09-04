@@ -1,0 +1,378 @@
+"""REVENEX P2 Intelligence Adapter.
+
+Additive integration boundary for Stage 73-80 intelligence.
+This module is read-only and never performs financial/provider mutations.
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from revenex.anomaly_intelligence import (
+    detect_revenue_anomalies,
+    summarize_anomalies,
+)
+from revenex.forecast_intelligence import (
+    forecast_revenue,
+    summarize_forecast,
+)
+from revenex.leakage import (
+    detect_revenue_leakage,
+    summarize_revenue_leakage,
+)
+from revenex.revenue_graph import (
+    analyze_revenue_graph,
+    build_revenue_graph,
+)
+from revenex.root_cause_intelligence import (
+    analyze_root_causes,
+    summarize_root_causes,
+)
+from revenex.intelligence.engine import build_intelligence_snapshot
+
+
+def build_p2_intelligence(
+    *,
+    invoices: list[dict[str, Any]],
+    payments: list[dict[str, Any]],
+    orders: list[dict[str, Any]] | None = None,
+    refunds: list[dict[str, Any]] | None = None,
+    settlements: list[dict[str, Any]] | None = None,
+    subscriptions: list[dict[str, Any]] | None = None,
+    payouts: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build additive Stage 73-80 intelligence.
+
+    No existing intelligence calculation is modified.
+    No financial/provider mutation is performed.
+    """
+
+    orders = list(orders or [])
+    refunds = list(refunds or [])
+    settlements = list(settlements or [])
+    subscriptions = list(subscriptions or [])
+    payouts = list(payouts or [])
+
+    graph = build_revenue_graph(
+        invoices=invoices,
+        payments=payments,
+        orders=orders,
+        refunds=refunds,
+        settlements=settlements,
+        subscriptions=subscriptions,
+        payouts=payouts,
+    )
+    graph_report = analyze_revenue_graph(graph)
+
+    leakages = detect_revenue_leakage(
+        invoices=invoices,
+        payments=payments,
+        refunds=refunds,
+        settlements=settlements,
+        orders=orders,
+    )
+    leakage_report = summarize_revenue_leakage(leakages)
+
+    # ---------------------------------------------------------------
+    # DATA-AWARE P2 OBSERVATIONS
+    # ---------------------------------------------------------------
+    # Derive deterministic observations from records already supplied
+    # to the API. This changes only adapter inputs; the underlying
+    # forecast/anomaly engines remain untouched.
+    def _money(value: Any) -> float:
+        try:
+            return float(value or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    def _invoice_amount(invoice: dict[str, Any]) -> float:
+        for key in ("amount", "gross_amount", "total_amount"):
+            if invoice.get(key) is not None:
+                return _money(invoice.get(key))
+        return 0.0
+
+    def _invoice_outstanding(invoice: dict[str, Any]) -> float:
+        if invoice.get("outstanding_amount") is not None:
+            return max(0.0, _money(invoice.get("outstanding_amount")))
+
+        if invoice.get("amount_due") is not None:
+            return max(0.0, _money(invoice.get("amount_due")))
+
+        amount = _invoice_amount(invoice)
+        paid = _money(invoice.get("amount_paid"))
+        return max(0.0, amount - paid)
+
+    def _payment_amount(payment: dict[str, Any]) -> float:
+        if payment.get("amount") is not None:
+            return _money(payment.get("amount"))
+        return _money(payment.get("amount_paid"))
+
+    def _payment_successful(payment: dict[str, Any]) -> bool:
+        if payment.get("captured") is True:
+            return True
+
+        status = str(payment.get("status", "")).strip().lower()
+        return status in {
+            "captured",
+            "paid",
+            "success",
+            "successful",
+            "completed",
+        }
+
+    # Current portfolio observations.
+    current_revenue = round(
+        sum(_invoice_amount(invoice) for invoice in invoices),
+        2,
+    )
+
+    current_payment = round(
+        sum(
+            _payment_amount(payment)
+            for payment in payments
+            if _payment_successful(payment)
+        ),
+        2,
+    )
+
+    current_settlement = round(
+        sum(
+            _money(
+                settlement.get("amount")
+                if settlement.get("amount") is not None
+                else settlement.get("settlement_amount")
+            )
+            for settlement in settlements
+        ),
+        2,
+    )
+
+        # Executive revenue bridge:
+        # expected revenue = invoice portfolio value.
+        # actual revenue = successfully captured payment value.
+    expected_revenue = current_revenue
+    actual_revenue = current_payment
+
+    # A single current portfolio snapshot is intentionally not treated
+    # as historical data. Forecasting requires at least two observations.
+    # Therefore, only explicit record-level historical fields are used
+    # when available; otherwise the forecast engine correctly reports
+    # insufficient historical data.
+    historical_revenue: list[float] = []
+    historical_payments: list[float] = []
+    historical_settlements: list[float] = []
+
+    for invoice in invoices:
+        history = invoice.get("historical_revenue")
+        if isinstance(history, (list, tuple)):
+            historical_revenue.extend(
+                _money(value) for value in history
+            )
+
+    for payment in payments:
+        history = payment.get("historical_payments")
+        if isinstance(history, (list, tuple)):
+            historical_payments.extend(
+                _money(value) for value in history
+            )
+
+    for settlement in settlements:
+        history = settlement.get("historical_settlements")
+        if isinstance(history, (list, tuple)):
+            historical_settlements.extend(
+                _money(value) for value in history
+            )
+
+    anomalies = detect_revenue_anomalies(
+        historical_revenue=historical_revenue or None,
+        historical_payments=historical_payments or None,
+        historical_settlements=historical_settlements or None,
+        current_revenue=current_revenue if invoices else None,
+        current_payment=current_payment if payments else None,
+        current_settlement=current_settlement if settlements else None,
+    )
+    anomaly_report = summarize_anomalies(anomalies)
+
+    forecast = forecast_revenue(
+        historical_revenue=historical_revenue,
+    )
+    forecast_report = summarize_forecast((forecast,))
+
+    # ---------------------------------------------------------------
+    # EXECUTIVE INTELLIGENCE SYNTHESIS
+    # ---------------------------------------------------------------
+    # This combines the already-observed P2 signals into one
+    # deterministic executive-level signal.
+    #
+    # No provider calls.
+    # No financial mutation.
+    # No automatic execution.
+    executive = build_intelligence_snapshot(
+        historical_revenue=historical_revenue,
+        current_revenue=current_revenue,
+        expected_revenue=expected_revenue,
+        actual_revenue=actual_revenue,
+        unpaid_invoices=invoices,
+        refunds=refunds,
+        settlement_gaps=settlements,
+    )
+
+    root_causes = analyze_root_causes(
+        unpaid_invoices=invoices,
+        refunds=refunds,
+        settlement_gaps=settlements,
+    )
+    root_cause_report = summarize_root_causes(root_causes)
+
+    return {
+        "revenue_graph": {
+            "total_nodes": graph_report.total_nodes,
+            "total_edges": graph_report.total_edges,
+            "customer_count": graph_report.customer_count,
+            "order_count": graph_report.order_count,
+            "invoice_count": graph_report.invoice_count,
+            "payment_count": graph_report.payment_count,
+            "payment_link_count": graph_report.payment_link_count,
+            "subscription_count": graph_report.subscription_count,
+            "refund_count": graph_report.refund_count,
+            "settlement_count": graph_report.settlement_count,
+            "dispute_count": graph_report.dispute_count,
+            "payout_count": graph_report.payout_count,
+            "connected_customer_count": graph_report.connected_customer_count,
+            "orphan_payment_count": graph_report.orphan_payment_count,
+            "orphan_invoice_count": graph_report.orphan_invoice_count,
+            "orphan_order_count": graph_report.orphan_order_count,
+            "read_only": graph_report.read_only,
+            "financial_mutation": graph_report.financial_mutation,
+            "provider_mutation": graph_report.provider_mutation,
+        },
+        "leakage": {
+            "total_leakage_amount": leakage_report.total_leakage_amount,
+            "leakage_count": leakage_report.leakage_count,
+            "critical_count": leakage_report.critical_count,
+            "high_count": leakage_report.high_count,
+            "medium_count": leakage_report.medium_count,
+            "low_count": leakage_report.low_count,
+            "unpaid_invoice_exposure": leakage_report.unpaid_invoice_exposure,
+            "partial_payment_exposure": leakage_report.partial_payment_exposure,
+            "payment_mismatch_exposure": leakage_report.payment_mismatch_exposure,
+            "refund_exposure": leakage_report.refund_exposure,
+            "dispute_exposure": leakage_report.dispute_exposure,
+            "settlement_gap_exposure": leakage_report.settlement_gap_exposure,
+            "orphan_exposure": leakage_report.orphan_exposure,
+            "executive_summary": leakage_report.executive_summary,
+            "human_review_required": leakage_report.human_review_required,
+            "read_only": leakage_report.read_only,
+            "financial_mutation": leakage_report.financial_mutation,
+            "provider_mutation": leakage_report.provider_mutation,
+        },
+        "anomalies": {
+            "total_anomalies": anomaly_report.total_anomalies,
+            "critical_count": anomaly_report.critical_count,
+            "high_count": anomaly_report.high_count,
+            "medium_count": anomaly_report.medium_count,
+            "low_count": anomaly_report.low_count,
+            "total_deviation": anomaly_report.total_deviation,
+            "human_review_required": anomaly_report.human_review_required,
+            "read_only": anomaly_report.read_only,
+            "financial_mutation": anomaly_report.financial_mutation,
+            "provider_mutation": anomaly_report.provider_mutation,
+        },
+        "root_causes": {
+            "total_causes": root_cause_report.total_causes,
+            "affected_revenue": root_cause_report.affected_revenue,
+            "average_confidence": root_cause_report.average_confidence,
+            "primary_cause": (
+                None
+                if root_cause_report.primary_cause is None
+                else {
+                    "cause_id": root_cause_report.primary_cause.cause_id,
+                    "category": root_cause_report.primary_cause.category.value,
+                    "title": root_cause_report.primary_cause.title,
+                    "explanation": root_cause_report.primary_cause.explanation,
+                    "affected_amount": root_cause_report.primary_cause.affected_amount,
+                    "contribution": root_cause_report.primary_cause.contribution,
+                    "confidence": root_cause_report.primary_cause.confidence,
+                    "evidence": list(root_cause_report.primary_cause.evidence),
+                }
+            ),
+            "human_review_required": root_cause_report.human_review_required,
+            "read_only": root_cause_report.read_only,
+            "financial_mutation": root_cause_report.financial_mutation,
+            "provider_mutation": root_cause_report.provider_mutation,
+        },
+        "forecast": {
+            "total_forecasts": forecast_report.total_forecasts,
+            "projected_revenue": forecast_report.projected_revenue,
+            "average_confidence": forecast_report.average_confidence,
+            "high_risk_count": forecast_report.high_risk_count,
+            "human_review_required": forecast_report.human_review_required,
+            "read_only": forecast_report.read_only,
+            "financial_mutation": forecast_report.financial_mutation,
+            "provider_mutation": forecast_report.provider_mutation,
+            "forecast": {
+                "forecast_id": forecast.forecast_id,
+                "horizon": forecast.horizon.value,
+                "projected_revenue": forecast.projected_revenue,
+                "lower_bound": forecast.lower_bound,
+                "upper_bound": forecast.upper_bound,
+                "confidence": forecast.confidence,
+                "risk": forecast.risk.value,
+                "trend": forecast.trend,
+                "evidence": list(forecast.evidence),
+                "human_review_required": forecast.human_review_required,
+                "read_only": forecast.read_only,
+                "financial_mutation": forecast.financial_mutation,
+                "provider_mutation": forecast.provider_mutation,
+            },
+        },
+        "executive_intelligence": {
+            "forecast_available": executive.forecast_available,
+            "anomaly_count": executive.anomaly_count,
+            "root_cause_count": executive.root_cause_count,
+            "executive_signal": executive.executive_signal,
+            "confidence": executive.confidence,
+            "primary_anomaly": (
+                None
+                if executive.primary_anomaly is None
+                else {
+                    "anomaly_id": executive.primary_anomaly.anomaly_id,
+                    "type": executive.primary_anomaly.anomaly_type.value,
+                    "severity": executive.primary_anomaly.severity.value,
+                    "entity_type": executive.primary_anomaly.entity_type,
+                    "entity_id": executive.primary_anomaly.entity_id,
+                    "expected_value": executive.primary_anomaly.expected_value,
+                    "observed_value": executive.primary_anomaly.observed_value,
+                    "deviation": executive.primary_anomaly.deviation,
+                    "explanation": executive.primary_anomaly.explanation,
+                    "evidence": list(executive.primary_anomaly.evidence),
+                }
+            ),
+            "primary_root_cause": (
+                None
+                if executive.primary_root_cause is None
+                else {
+                    "cause_id": executive.primary_root_cause.cause_id,
+                    "category": executive.primary_root_cause.category.value,
+                    "title": executive.primary_root_cause.title,
+                    "explanation": executive.primary_root_cause.explanation,
+                    "affected_amount": executive.primary_root_cause.affected_amount,
+                    "contribution": executive.primary_root_cause.contribution,
+                    "confidence": executive.primary_root_cause.confidence,
+                    "evidence": list(executive.primary_root_cause.evidence),
+                }
+            ),
+            "human_review_required": executive.human_review_required,
+            "read_only": executive.read_only,
+            "financial_mutation": executive.financial_mutation,
+            "provider_mutation": executive.provider_mutation,
+        },
+        "safety": {
+            "read_only": True,
+            "human_review_required": True,
+            "execution_allowed": False,
+            "automatic_action": False,
+            "financial_mutation": False,
+            "provider_mutation": False,
+        },
+    }

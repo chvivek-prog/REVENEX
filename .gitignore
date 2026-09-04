@@ -1,0 +1,12 @@
+.env
+.env.*
+.venv/
+__pycache__/
+.pytest_cache/
+*.sqlite3
+
+# Local backup/submission artifacts
+.revenex_backups/
+REVENEX_RECOVERAI_SUBMISSION.zip
+REVENEX_RECOVERAI_SUBMISSION/
+phase2a_backup/

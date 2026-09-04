@@ -1,0 +1,149 @@
+
+from __future__ import annotations
+
+from typing import Any
+
+
+def _money(value: Any) -> float:
+    try:
+        return max(0.0, float(value or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def build_payout_intelligence(
+    payouts: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Read-only payout intelligence.
+
+    REVENEX analyzes payout state but never initiates,
+    approves, cancels, retries, or mutates a payout.
+    """
+
+    results: list[dict[str, Any]] = []
+
+    for index, payout in enumerate(payouts):
+        payout_id = str(
+            payout.get("payout_id")
+            or payout.get("id")
+            or f"payout-{index + 1}"
+        )
+
+        amount = _money(
+            payout.get("amount")
+            or payout.get("payout_amount")
+        )
+
+        status = str(
+            payout.get("status")
+            or "unknown"
+        ).strip().lower()
+
+        destination = str(
+            payout.get("destination")
+            or payout.get("account")
+            or "unknown"
+        )
+
+        if status in {
+            "processed",
+            "completed",
+            "success",
+            "successful",
+            "paid",
+        }:
+            signal = "PAYOUT_COMPLETED"
+            risk = "LOW"
+
+        elif status in {
+            "pending",
+            "created",
+            "queued",
+            "processing",
+        }:
+            signal = "PAYOUT_PENDING"
+            risk = "MEDIUM"
+
+        elif status in {
+            "failed",
+            "reversed",
+            "cancelled",
+            "rejected",
+        }:
+            signal = "PAYOUT_EXCEPTION"
+            risk = "HIGH"
+
+        else:
+            signal = "PAYOUT_REVIEW"
+            risk = "MEDIUM"
+
+        results.append(
+            {
+                "payout_id": payout_id,
+                "amount": round(amount, 2),
+                "status": status,
+                "destination": destination,
+                "risk_level": risk,
+                "payout_signal": signal,
+                "read_only": True,
+            }
+        )
+
+    return results
+
+
+def summarize_payout_behavior(
+    payouts: list[dict[str, Any]],
+) -> dict[str, Any]:
+
+    total = len(payouts)
+
+    completed = sum(
+        item["payout_signal"] == "PAYOUT_COMPLETED"
+        for item in payouts
+    )
+
+    pending = sum(
+        item["payout_signal"] == "PAYOUT_PENDING"
+        for item in payouts
+    )
+
+    exceptions = sum(
+        item["payout_signal"] == "PAYOUT_EXCEPTION"
+        for item in payouts
+    )
+
+    value = round(
+        sum(item["amount"] for item in payouts),
+        2,
+    )
+
+    pending_value = round(
+        sum(
+            item["amount"]
+            for item in payouts
+            if item["payout_signal"] == "PAYOUT_PENDING"
+        ),
+        2,
+    )
+
+    exception_value = round(
+        sum(
+            item["amount"]
+            for item in payouts
+            if item["payout_signal"] == "PAYOUT_EXCEPTION"
+        ),
+        2,
+    )
+
+    return {
+        "total_payouts": total,
+        "completed_payouts": completed,
+        "pending_payouts": pending,
+        "exception_payouts": exceptions,
+        "payout_value": value,
+        "pending_payout_value": pending_value,
+        "exception_payout_value": exception_value,
+        "read_only": True,
+    }

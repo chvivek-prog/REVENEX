@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: revenex
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m revenex.api.http_server
+    healthCheckPath: /health

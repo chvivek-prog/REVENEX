@@ -1,0 +1,3756 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>REVENEX — Revenue Command Center</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:#f4f7fb;color:#0f172a}
+.app{display:flex;min-height:100vh}
+.sidebar{width:240px;background:#0b1220;color:#fff;padding:24px 14px;position:fixed;inset:0 auto 0 0}
+.logo{font-size:23px;font-weight:900;padding:0 10px}
+.logo small{display:block;font-size:9px;color:#94a3b8;letter-spacing:.16em;margin-top:5px}
+.nav{margin-top:28px}
+.nav button{width:100%;border:0;background:none;color:#cbd5e1;text-align:left;padding:11px 12px;border-radius:8px;margin:2px 0;cursor:pointer;font-weight:600}
+.nav button:hover,.nav button.active{background:#1e293b;color:#fff}
+.main{margin-left:240px;width:calc(100% - 240px);padding:28px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px}
+.eyebrow{font-size:11px;font-weight:800;color:#64748b;letter-spacing:.15em}
+h1{margin:5px 0;font-size:30px}
+.sub{color:#64748b}
+.safety{background:#ecfdf3;color:#166534;border:1px solid #bbf7d0;padding:9px 13px;border-radius:999px;font-size:12px;font-weight:800}
+.page{display:none}.page.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:white;border:1px solid #e5eaf1;border-radius:14px;padding:18px;box-shadow:0 1px 2px #00000008}
+.label{font-size:11px;font-weight:800;color:#64748b}
+.metric{font-size:27px;font-weight:900;margin-top:8px}
+.risk{color:#dc2626}.good{color:#16a34a}
+.layout{display:grid;grid-template-columns:1.7fr 1fr;gap:14px;margin-top:14px}
+.title{font-size:16px;font-weight:900;margin-bottom:13px}
+.row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #edf0f4}
+.row:last-child{border-bottom:0}
+textarea{width:100%;height:175px;border:1px solid #dbe1e8;border-radius:9px;padding:12px;font:12px monospace}
+.actions{margin-top:10px;display:flex;gap:8px}
+button.primary{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:11px 16px;font-weight:800;cursor:pointer}
+button.secondary{background:#eef2f7;color:#334155;border:0;border-radius:9px;padding:11px 16px;font-weight:800;cursor:pointer}
+.status{margin-top:10px;color:#64748b;font-size:12px}
+.pipeline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.step{border:1px solid #e5eaf1;border-radius:9px;padding:12px;text-align:center;font-size:11px;font-weight:800}
+.step b{display:block;font-size:17px;margin-bottom:4px}
+.safetygrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.safe{background:#f8fafc;border-radius:9px;padding:12px;font-size:12px}
+.safe b{display:block;color:#16a34a;margin-top:4px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:11px;border-bottom:1px solid #edf0f4;font-size:12px}
+pre{white-space:pre-wrap;background:#f8fafc;border-radius:9px;padding:13px;font-size:11px}
+.empty{text-align:center;color:#64748b;padding:30px}
+@media(max-width:950px){.sidebar{width:190px}.main{margin-left:190px;width:calc(100% - 190px)}.metrics{grid-template-columns:1fr 1fr}.layout{grid-template-columns:1fr}}
+@media(max-width:650px){.app{display:block}.sidebar{position:static;width:100%}.main{margin:0;width:100%;padding:15px}.metrics{grid-template-columns:1fr}.top{flex-direction:column;gap:12px}}
+</style>
+
+<style id="customer360-final-style">
+.customer360-card {
+  overflow: hidden;
+}
+
+.customer360-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.customer360-subtitle {
+  margin-top: 5px;
+  font-size: 12px;
+  opacity: .65;
+}
+
+.customer360-safety {
+  font-size: 10px;
+  letter-spacing: .07em;
+  opacity: .7;
+  white-space: nowrap;
+}
+
+.customer360-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.customer360-stat {
+  padding: 14px;
+  border: 1px solid rgba(128,128,128,.18);
+  border-radius: 10px;
+  background: rgba(128,128,128,.04);
+}
+
+.customer360-stat span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  opacity: .6;
+  margin-bottom: 7px;
+}
+
+.customer360-stat strong {
+  font-size: 20px;
+}
+
+.customer360-table {
+  width: 100%;
+}
+
+.customer360-table th,
+.customer360-table td {
+  padding: 13px 12px;
+}
+
+.customer360-table th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.customer360-note {
+  margin-top: 15px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(128,128,128,.15);
+  font-size: 11px;
+  opacity: .6;
+}
+
+@media (max-width: 800px) {
+  .customer360-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer360-heading {
+    flex-direction: column;
+  }
+
+  .customer360-safety {
+    white-space: normal;
+  }
+}
+</style>
+
+
+<style id="REVENEX_CUSTOMER360_ROW_GOVERNANCE_STYLE">
+
+.revenex-customer-decision strong,
+.revenex-customer-governance strong {
+  font-size: 11px;
+  letter-spacing: .02em;
+}
+
+.revenex-customer-decision {
+  white-space: nowrap;
+}
+
+.revenex-customer-governance {
+  white-space: nowrap;
+}
+
+.revenex-customer-governance small {
+  display: block;
+  margin-top: 4px;
+  font-size: 9px;
+  opacity: .55;
+}
+
+</style>
+
+
+<style id="REVENEX_CUSTOMER360_DETAIL_STYLE">
+.customer360-detail {
+  margin-top:18px;
+  padding:18px;
+  border:1px solid rgba(128,128,128,.22);
+  border-radius:14px;
+  background:rgba(128,128,128,.035);
+}
+
+.customer360-detail[hidden] {
+  display:none;
+}
+
+.customer360-detail-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:18px;
+}
+
+.customer360-detail-head h3 {
+  margin:4px 0 0;
+}
+
+.customer360-detail-head > span {
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.07em;
+}
+
+.customer360-detail-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+}
+
+.customer360-detail-grid > div {
+  padding:13px;
+  border:1px solid rgba(128,128,128,.16);
+  border-radius:10px;
+}
+
+.customer360-detail-grid span,
+.customer360-detail-reason > span {
+  display:block;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  opacity:.6;
+  margin-bottom:6px;
+}
+
+.customer360-detail-grid strong {
+  font-size:15px;
+}
+
+.customer360-detail-reason {
+  margin-top:15px;
+  padding-top:15px;
+  border-top:1px solid rgba(128,128,128,.14);
+}
+
+.customer360-detail-reason p {
+  margin:0;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.customer360-detail-safety {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 18px;
+  margin-top:15px;
+  padding-top:14px;
+  border-top:1px solid rgba(128,128,128,.14);
+  font-size:10px;
+}
+
+.customer360-detail-safety span {
+  opacity:.6;
+}
+
+.customer360-detail-safety b {
+  margin-right:8px;
+}
+
+.customer360-table tbody tr[data-customer-detail] {
+  cursor:pointer;
+}
+
+.customer360-table tbody tr[data-customer-detail]:hover {
+  background:rgba(128,128,128,.06);
+}
+
+@media (max-width:800px) {
+  .customer360-detail-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- =========================================================
+     REVENEX DOM COMPATIBILITY LAYER
+     Keeps legacy intelligence renderers compatible with the
+     current standalone Command Center.
+     ========================================================= -->
+<div id="revenex-dom-compatibility" style="display:none">
+  <div id="customers360"></div>
+  <div id="customer360"></div>
+  <div id="customerTable"></div>
+  <div id="auditData"></div>
+  <div id="actualCollection"></div>
+  <div id="learningValue"></div>
+  
+<!-- P2 INTELLIGENCE — ADDITIVE DASHBOARD LAYER -->
+<div id="p2Intelligence"></div>
+<div id="invoiceIntelligence"></div>
+  <div id="paymentIntelligence"></div>
+  <div id="orderSubscriptionIntelligence"></div>
+  <div id="refundSettlementCash"></div>
+  <div id="payoutTreasury"></div>
+</div>
+
+<div class="app">
+
+<aside class="sidebar">
+<div class="logo">
+REVENEX
+<small>AUTONOMOUS REVENUE OS</small>
+</div>
+
+<nav class="nav">
+<button class="active" data-page="command">⌂ Command Center</button>
+<button data-page="intelligence">◈ Revenue Intelligence</button>
+<button data-page="customers">◎ Customers 360</button>
+<button data-page="invoices">▣ Invoices</button>
+<button data-page="collections">↗ Collections</button>
+<button data-page="forecast">◒ Forecast</button>
+<button data-page="simulation">◇ Simulations</button>
+<button data-page="decisions">✓ Decisions</button>
+<button data-page="audit">⌁ Audit</button>
+<button data-page="outcomes">◉ Outcomes</button>
+<button data-page="learning">△ Learning</button>
+</nav>
+</aside>
+
+<main class="main">
+
+<header class="top">
+<div>
+<div class="eyebrow">REVENEX INTELLIGENCE PLATFORM</div>
+<h1 id="title">Revenue Command Center</h1>
+<div class="sub">Observe → Understand → Predict → Simulate → Decide → Monitor → Learn</div>
+</div>
+<div class="safety">● READ-ONLY · HUMAN APPROVAL REQUIRED</div>
+</header>
+
+<!-- COMMAND CENTER -->
+<section id="command" class="page active">
+
+<div class="metrics">
+<div class="card"><div class="label">OUTSTANDING REVENUE</div><div class="metric" id="outstanding">₹0</div></div>
+<div class="card"><div class="label">REVENUE AT RISK</div><div class="metric risk" id="risk">₹0</div></div>
+<div class="card"><div class="label">EXPECTED COLLECTION</div><div class="metric good" id="expected">₹0</div></div>
+<div class="card"><div class="label">AI CONFIDENCE</div><div class="metric" id="confidence">0%</div></div>
+</div>
+
+<div class="layout">
+
+<div>
+<div class="card">
+<div class="title">Executive Revenue State</div>
+
+<textarea id="request">{
+  "invoices": [
+    {
+      "customer_id": "customer-47",
+      "amount": 200000,
+      "outstanding_amount": 150000,
+      "days_overdue": 90
+    },
+    {
+      "customer_id": "customer-88",
+      "amount": 500000,
+      "outstanding_amount": 400000,
+      "days_overdue": 120
+    }
+  ],
+  "payments": [],
+  "decision_id": "command-center-demo"
+}</textarea>
+
+<div class="actions">
+<button class="primary" onclick="analyze()">Analyze Revenue</button>
+<button class="secondary" onclick="demo()">Load Demo</button>
+</div>
+
+<div class="status" id="status">Ready.</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">AI Decision Center</div>
+<div class="row"><span>Recommended Action</span><b id="action">—</b></div>
+<div class="row"><span>Scenario</span><b id="scenario">—</b></div>
+<div class="row"><span>Approval Required</span><b id="approval">—</b></div>
+<div class="row"><span>Learning Signal</span><b id="learningSignal">—</b></div>
+</div>
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Intelligence Pipeline</div>
+<div class="pipeline">
+<div class="step"><b>✓</b>Observe</div>
+<div class="step"><b>✓</b>Investigate</div>
+<div class="step"><b>✓</b>Predict</div>
+<div class="step"><b>✓</b>Simulate</div>
+<div class="step"><b>✓</b>Decide</div>
+<div class="step"><b>✓</b>Explain</div>
+<div class="step"><b>✓</b>Audit</div>
+<div class="step"><b>✓</b>Outcome</div>
+<div class="step"><b>✓</b>Learn</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Safety Boundary</div>
+<div class="safetygrid">
+<div class="safe">Execution<b>DISABLED</b></div>
+<div class="safe">Automatic Action<b>DISABLED</b></div>
+<div class="safe">Financial Mutation<b>DISABLED</b></div>
+<div class="safe">Provider Mutation<b>DISABLED</b></div>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">System Status</div>
+<div class="row"><span>Intelligence API</span><b id="apiStatus">READY</b></div>
+<div class="row"><span>Decision Engine</span><b class="good">ONLINE</b></div>
+<div class="row"><span>Outcome Learning</span><b class="good">ONLINE</b></div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- INTELLIGENCE -->
+<section id="intelligence" class="page">
+
+<div class="metrics">
+<div class="card">
+<div class="label">TOTAL EXPOSURE</div>
+<div class="metric" id="iExposure">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">REVENUE AT RISK</div>
+<div class="metric risk" id="iRisk">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">EXPECTED RECOVERY</div>
+<div class="metric good" id="iRecovery">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">AI CONFIDENCE</div>
+<div class="metric" id="iConfidence">0%</div>
+</div>
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Risk Intelligence</div>
+
+<div class="row">
+<span>High-Risk Customers</span>
+<b id="iHighRiskCustomers">0</b>
+</div>
+
+<div class="row">
+<span>Critical Customers</span>
+<b id="iCriticalCustomers">0</b>
+</div>
+
+<div class="row">
+<span>High-Risk Exposure</span>
+<b class="risk" id="iHighRiskExposure">₹0</b>
+</div>
+
+<div class="row">
+<span>Risk Concentration</span>
+<b id="iConcentration">0%</b>
+</div>
+
+<div class="row">
+<span>Baseline Expected Collection</span>
+<b id="iBaselineCollection">₹0</b>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Selected AI Decision</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="iScenario">—</b>
+</div>
+
+<div class="row">
+<span>Recommended Action</span>
+<b id="iAction">—</b>
+</div>
+
+<div class="row">
+<span>Selected Expected Collection</span>
+<b class="good" id="iSelectedCollection">₹0</b>
+</div>
+
+<div class="row">
+<span>Remaining Exposure</span>
+<b class="risk" id="iRemainingExposure">₹0</b>
+</div>
+
+<div class="row">
+<span>Approval</span>
+<b id="iApproval">—</b>
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Why REVENEX Recommends This</div>
+<div id="iReasons" class="empty">
+Run an analysis from Command Center.
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Executive Summary</div>
+<div id="iSummary" class="sub">
+Run an analysis from Command Center.
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Revenue Risk Propagation</div>
+<div class="row">
+  <span>Propagated Exposure</span>
+  <b class="risk" id="iPropagatedExposure">₹0</b>
+</div>
+<div class="row">
+  <span>Risk Concentration</span>
+  <b id="iPropagationConcentration">0%</b>
+</div>
+<div class="row">
+  <span>Propagation Level</span>
+  <b id="iPropagationLevel">—</b>
+</div>
+<div class="row">
+  <span>Primary Risk Path</span>
+  <b id="iRiskPath">—</b>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Revenue Opportunities</div>
+<div class="row">
+  <span>Detected Opportunities</span>
+  <b id="iOpportunityCount">0</b>
+</div>
+<div class="row">
+  <span>Top Opportunity</span>
+  <b id="iTopOpportunity">—</b>
+</div>
+<div class="row">
+  <span>Recommended Intervention</span>
+  <b id="iIntervention">—</b>
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Decision Safety</div>
+
+<div class="safetygrid">
+<div class="safe">
+Execution
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Action
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- CUSTOMERS -->
+<section id="customers" class="page">
+<div class="card customer360-card">
+
+<div class="customer360-heading">
+  <div>
+    <div class="title">Customer 360</div>
+    <div class="customer360-subtitle">
+      Customer Revenue Intelligence · Exposure → Risk → Collection → Decision
+    </div>
+  </div>
+  <span class="customer360-safety">
+    READ-ONLY · HUMAN APPROVAL REQUIRED
+  </span>
+</div>
+
+<div class="customer360-summary">
+  <div class="customer360-stat">
+    <span>Total Customers</span>
+    <strong id="customer360Count">—</strong>
+  </div>
+  <div class="customer360-stat">
+    <span>Total Exposure</span>
+    <strong id="customer360Exposure">—</strong>
+  </div>
+  <div class="customer360-stat">
+    <span>High Risk</span>
+    <strong id="customer360HighRisk">—</strong>
+  </div>
+  <div class="customer360-stat">
+    <span>AI Priority</span>
+    <strong id="customer360Priority">—</strong>
+  </div>
+</div>
+
+<table class="customer360-table">
+<thead>
+<tr>
+  <th>Customer</th>
+  <th>Exposure</th>
+  <th>Risk</th>
+  <th>Priority</th>
+  <th>Decision</th>
+  <th>Governance</th>
+</tr>
+</thead>
+
+<tbody id="customersTable">
+<tr>
+  <td colspan="6" class="empty">Run analysis first.</td>
+</tr>
+</tbody>
+</table>
+
+<div id="customer360Detail"
+     style="display:none;margin-top:18px;padding:18px;border:1px solid rgba(128,128,128,.22);border-radius:14px;background:rgba(128,128,128,.035);">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
+    <div>
+      <div style="font-size:10px;letter-spacing:.08em;opacity:.6;">
+        CUSTOMER INTELLIGENCE
+      </div>
+      <h3 id="c360DetailCustomer" style="margin:5px 0 0;">—</h3>
+    </div>
+
+    <strong id="c360DetailPriority">—</strong>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+
+    <div class="card">
+      <small>EXPOSURE</small>
+      <strong id="c360DetailExposure">—</strong>
+    </div>
+
+    <div class="card">
+      <small>RISK</small>
+      <strong id="c360DetailRisk">—</strong>
+    </div>
+
+    <div class="card">
+      <small>DECISION</small>
+      <strong id="c360DetailDecision">—</strong>
+    </div>
+
+    <div class="card">
+      <small>GOVERNANCE</small>
+      <strong id="c360DetailGovernance">—</strong>
+    </div>
+
+  </div>
+
+  <div style="margin-top:16px;padding-top:15px;border-top:1px solid rgba(128,128,128,.15);">
+    <small>AI EXPLANATION</small>
+    <p id="c360DetailReason" style="line-height:1.55;margin-bottom:0;">—</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:16px;padding-top:15px;border-top:1px solid rgba(128,128,128,.15);font-size:11px;">
+    <span>Execution <b>DISABLED</b></span>
+    <span>Automatic Action <b>DISABLED</b></span>
+    <span>Financial Mutation <b>DISABLED</b></span>
+    <span>Provider Mutation <b>DISABLED</b></span>
+    <span>Human Approval <b>REQUIRED</b></span>
+  </div>
+
+</div>
+
+
+
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Revenue Forecast</div>
+
+<div class="row">
+<span>Total Outstanding</span>
+<b id="legacy_fOutstanding">₹0</b>
+</div>
+
+<div class="row">
+<span>Revenue At Risk</span>
+<b class="risk" id="legacy_fRisk">₹0</b>
+</div>
+
+<div class="row">
+<span>Baseline Expected Collection</span>
+<b id="legacy_fBaseline">₹0</b>
+</div>
+
+<div class="row">
+<span>Selected Scenario Collection</span>
+<b class="good" id="legacy_fSelected">₹0</b>
+</div>
+
+<div class="row">
+<span>Remaining Exposure</span>
+<b class="risk" id="legacy_fRemainingDetail">₹0</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Forecast Interpretation</div>
+<div id="legacy_fInterpretation" class="sub">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Prediction Status</div>
+
+<div class="row">
+<span>Prediction</span>
+<b class="good">AVAILABLE</b>
+</div>
+
+<div class="row">
+<span>Confidence</span>
+<b id="legacy_fConfidenceDetail">0%</b>
+</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="legacy_fScenarioDetail">—</b>
+</div>
+
+<div class="row">
+<span>Approval Required</span>
+<b id="legacy_fApproval">—</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Forecast Safety</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Execution
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Action
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- SIMULATION -->
+<section id="invoices" class="page">
+<div class="card">
+<div class="title">Invoice Intelligence</div>
+<table>
+<thead><tr><th>Customer</th><th>Amount</th><th>Outstanding</th><th>Overdue</th></tr></thead>
+<tbody id="invoiceTable"><tr><td colspan="4" class="empty">Run analysis first.</td></tr></tbody>
+</table>
+</div>
+</section>
+
+<section id="collections" class="page">
+<div class="card">
+<div class="title">Collections & Recovery</div>
+<div class="row"><span>Expected Collection</span><b class="good" id="collectionExpected">₹0</b></div>
+<div class="row"><span>Revenue At Risk</span><b class="risk" id="collectionRisk">₹0</b></div>
+<div class="row"><span>Priority</span><b id="collectionPriority">—</b></div>
+<div class="row"><span>Automatic Collection</span><b class="good">DISABLED</b></div>
+</div>
+</section>
+
+<section id="forecast" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">EXPECTED COLLECTION</div>
+<div class="metric good" id="fExpected">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">REMAINING EXPOSURE</div>
+<div class="metric risk" id="fRemaining">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">PREDICTION CONFIDENCE</div>
+<div class="metric" id="fConfidence">0%</div>
+</div>
+
+<div class="card">
+<div class="label">FORECAST SCENARIO</div>
+<div class="metric" id="fScenario">—</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Revenue Forecast</div>
+
+<div class="row">
+<span>Total Outstanding</span>
+<b id="fOutstanding">₹0</b>
+</div>
+
+<div class="row">
+<span>Revenue At Risk</span>
+<b class="risk" id="fRisk">₹0</b>
+</div>
+
+<div class="row">
+<span>Baseline Expected Collection</span>
+<b id="fBaseline">₹0</b>
+</div>
+
+<div class="row">
+<span>Selected Scenario Collection</span>
+<b class="good" id="fSelected">₹0</b>
+</div>
+
+<div class="row">
+<span>Remaining Exposure</span>
+<b class="risk" id="fRemainingDetail">₹0</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Forecast Interpretation</div>
+<div id="fInterpretation" class="sub">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Prediction Status</div>
+
+<div class="row">
+<span>Prediction</span>
+<b class="good">AVAILABLE</b>
+</div>
+
+<div class="row">
+<span>Confidence</span>
+<b id="fConfidenceDetail">0%</b>
+</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="fScenarioDetail">—</b>
+</div>
+
+<div class="row">
+<span>Approval Required</span>
+<b id="fApproval">—</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Forecast Safety</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Execution
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Action
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="simulation" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">PROJECTED COLLECTION</div>
+<div class="metric good" id="simulationExpected">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">PROJECTED REMAINING</div>
+<div class="metric risk" id="simulationRemaining">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">SIMULATION CONFIDENCE</div>
+<div class="metric" id="simulationConfidence">0%</div>
+</div>
+
+<div class="card">
+<div class="label">SELECTED SCENARIO</div>
+<div class="metric" id="simulationScenario">—</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Scenario Impact</div>
+
+<div class="row">
+<span>Current Outstanding</span>
+<b id="simulationOutstanding">₹0</b>
+</div>
+
+<div class="row">
+<span>Revenue At Risk</span>
+<b class="risk" id="simulationRisk">₹0</b>
+</div>
+
+<div class="row">
+<span>Projected Recovery</span>
+<b class="good" id="simulationRecovery">₹0</b>
+</div>
+
+<div class="row">
+<span>Projected Remaining Exposure</span>
+<b class="risk" id="simulationRemainingDetail">₹0</b>
+</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="simulationScenarioDetail">—</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Simulation Interpretation</div>
+<div id="simulationInterpretation" class="sub">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Why This Scenario?</div>
+<div id="simulationReasons" class="empty">
+Run an analysis from Command Center.
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Simulation Boundary</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Simulation
+<b>ADVISORY ONLY</b>
+</div>
+
+<div class="safe">
+Human Approval
+<b>REQUIRED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Execution Boundary</div>
+
+<div class="row">
+<span>Execution Allowed</span>
+<b class="good">FALSE</b>
+</div>
+
+<div class="row">
+<span>Automatic Action</span>
+<b class="good">FALSE</b>
+</div>
+
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- DECISIONS -->
+<section id="decisions" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">RECOMMENDED ACTION</div>
+<div class="metric" id="decisionAction">—</div>
+</div>
+
+<div class="card">
+<div class="label">CONFIDENCE</div>
+<div class="metric" id="decisionConfidence">0%</div>
+</div>
+
+<div class="card">
+<div class="label">EXPECTED COLLECTION</div>
+<div class="metric good" id="decisionCollection">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">REMAINING EXPOSURE</div>
+<div class="metric risk" id="decisionRemaining">₹0</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Decision Center</div>
+
+<div class="row">
+<span>Recommended Action</span>
+<b id="decisionActionDetail">—</b>
+</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="decisionScenario">—</b>
+</div>
+
+<div class="row">
+<span>Confidence</span>
+<b id="decisionConfidenceDetail">0%</b>
+</div>
+
+<div class="row">
+<span>Expected Collection</span>
+<b class="good" id="decisionCollectionDetail">₹0</b>
+</div>
+
+<div class="row">
+<span>Remaining Exposure</span>
+<b class="risk" id="decisionRemainingDetail">₹0</b>
+</div>
+
+<div class="row">
+<span>Approval Required</span>
+<b id="decisionApproval">—</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Why REVENEX Recommends This Decision</div>
+<div id="decisionReasons" class="empty">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Human Approval</div>
+
+<div class="approval-box">
+<div class="approval-title">HUMAN APPROVAL REQUIRED</div>
+<div class="sub">
+REVENEX provides a recommendation only. A human must review
+and approve any future action.
+</div>
+</div>
+
+<div class="row">
+<span>Approval Required</span>
+<b id="decisionApprovalDetail">YES</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Execution Boundary</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Execution
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Action
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Decision Status</div>
+
+<div class="row">
+<span>Decision</span>
+<b class="good">ADVISORY</b>
+</div>
+
+<div class="row">
+<span>Execution Allowed</span>
+<b class="good">FALSE</b>
+</div>
+
+<div class="row">
+<span>Human Control</span>
+<b class="good">REQUIRED</b>
+</div>
+
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- AUDIT -->
+<section id="audit" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">DECISION</div>
+<div class="metric" id="auditDecision">—</div>
+</div>
+
+<div class="card">
+<div class="label">SCENARIO</div>
+<div class="metric" id="auditScenario">—</div>
+</div>
+
+<div class="card">
+<div class="label">CONFIDENCE</div>
+<div class="metric" id="auditConfidence">0%</div>
+</div>
+
+<div class="card">
+<div class="label">AUDIT STATUS</div>
+<div class="metric good">VERIFIED</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Audit & Explainability</div>
+
+<div class="row">
+<span>Decision</span>
+<b id="auditDecisionDetail">—</b>
+</div>
+
+<div class="row">
+<span>Scenario</span>
+<b id="auditScenarioDetail">—</b>
+</div>
+
+<div class="row">
+<span>Expected Collection</span>
+<b class="good" id="auditCollection">₹0</b>
+</div>
+
+<div class="row">
+<span>Remaining Exposure</span>
+<b class="risk" id="auditRemaining">₹0</b>
+</div>
+
+<div class="row">
+<span>Confidence</span>
+<b id="auditConfidenceDetail">0%</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Evidence</div>
+<div id="auditEvidence" class="empty">
+Run an analysis from Command Center.
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Why REVENEX Decided</div>
+<div id="auditRationale" class="empty">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Decision Pipeline</div>
+
+<div id="auditStages">
+<div class="empty">Run an analysis from Command Center.</div>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Safety & Governance</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Execution
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Action
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+
+<div class="row" style="margin-top:12px">
+<span>Human Approval</span>
+<b class="good">REQUIRED</b>
+</div>
+
+<div class="row">
+<span>Audit Mode</span>
+<b class="good">READ-ONLY</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Audit Conclusion</div>
+<div id="auditConclusion" class="sub">
+Run an analysis from Command Center.
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- OUTCOMES -->
+<section id="outcomes" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">OUTCOME STATUS</div>
+<div class="metric" id="outcomeStatus">PENDING</div>
+</div>
+
+<div class="card">
+<div class="label">EXPECTED COLLECTION</div>
+<div class="metric good" id="outcomeExpected">₹0</div>
+</div>
+
+<div class="card">
+<div class="label">ACTUAL COLLECTION</div>
+<div class="metric" id="outcomeActual">NOT AVAILABLE</div>
+</div>
+
+<div class="card">
+<div class="label">LEARNING SIGNAL</div>
+<div class="metric" id="outcomeLearning">WAIT_FOR_OUTCOME</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Outcome Monitoring</div>
+
+<div class="row">
+<span>Outcome Status</span>
+<b id="outcomeStatusDetail">PENDING</b>
+</div>
+
+<div class="row">
+<span>Expected Collection</span>
+<b class="good" id="outcomeExpectedDetail">₹0</b>
+</div>
+
+<div class="row">
+<span>Expected Remaining Exposure</span>
+<b class="risk" id="outcomeExpectedRemaining">₹0</b>
+</div>
+
+<div class="row">
+<span>Actual Collection</span>
+<b id="outcomeActualDetail">NOT AVAILABLE</b>
+</div>
+
+<div class="row">
+<span>Actual Remaining Exposure</span>
+<b id="outcomeActualRemaining">NOT AVAILABLE</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Prediction vs Actual</div>
+
+<div id="outcomeComparison" class="empty">
+Actual outcome data has not been recorded yet.
+</div>
+
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Learning Status</div>
+
+<div class="row">
+<span>Evaluation Status</span>
+<b id="outcomeEvaluation">INSUFFICIENT_DATA</b>
+</div>
+
+<div class="row">
+<span>Learning Signal</span>
+<b id="outcomeLearningDetail">WAIT_FOR_OUTCOME</b>
+</div>
+
+<div class="row">
+<span>Learning Confidence</span>
+<b id="outcomeLearningConfidence">0%</b>
+</div>
+
+<div class="row">
+<span>Learning Action</span>
+<b id="outcomeLearningAction">WAIT_FOR_MORE_OUTCOMES</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Outcome Governance</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Actual Data
+<b>REQUIRED</b>
+</div>
+
+<div class="safe">
+Prediction Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Automatic Learning
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Monitoring Explanation</div>
+<div id="outcomeExplanation" class="sub">
+REVENEX is waiting for an actual real-world outcome before evaluating prediction accuracy.
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- LEARNING -->
+<section id="learning" class="page">
+
+<div class="metrics">
+
+<div class="card">
+<div class="label">LEARNING SIGNAL</div>
+<div class="metric" id="learningEngineSignal">—</div>
+</div>
+
+<div class="card">
+<div class="label">EVALUATION STATUS</div>
+<div class="metric" id="learningEvaluation">—</div>
+</div>
+
+<div class="card">
+<div class="label">LEARNING CONFIDENCE</div>
+<div class="metric" id="learningConfidence">0%</div>
+</div>
+
+<div class="card">
+<div class="label">LEARNING ACTION</div>
+<div class="metric" id="learningAction">—</div>
+</div>
+
+</div>
+
+<div class="layout">
+
+<div>
+
+<div class="card">
+<div class="title">Learning Engine</div>
+
+<div class="row">
+<span>Expected Collection</span>
+<b id="learningExpected">₹0</b>
+</div>
+
+<div class="row">
+<span>Observed Outcome</span>
+<b id="learningOutcome">PENDING</b>
+</div>
+
+<div class="row">
+<span>Evaluation Status</span>
+<b id="learningEvaluationDetail">—</b>
+</div>
+
+<div class="row">
+<span>Learning Signal</span>
+<b id="learningSignalDetail">—</b>
+</div>
+
+<div class="row">
+<span>Learning Action</span>
+<b id="learningActionDetail">—</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">What REVENEX Learned</div>
+
+<div id="learningExplanation" class="sub">
+Run an analysis to generate a learning signal.
+</div>
+
+</div>
+
+</div>
+
+<div>
+
+<div class="card">
+<div class="title">Next Learning Trigger</div>
+
+<div class="sub">
+REVENEX will evaluate prediction accuracy when an actual
+real-world outcome is recorded.
+</div>
+
+<div class="row" style="margin-top:12px">
+<span>Actual Outcome</span>
+<b id="learningTrigger">REQUIRED</b>
+</div>
+
+<div class="row">
+<span>Model Evaluation</span>
+<b>WAITING</b>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Learning Governance</div>
+
+<div class="safetygrid">
+
+<div class="safe">
+Automatic Model Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Human Review
+<b>REQUIRED</b>
+</div>
+
+<div class="safe">
+Financial Mutation
+<b>DISABLED</b>
+</div>
+
+<div class="safe">
+Provider Mutation
+<b>DISABLED</b>
+</div>
+
+</div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<div class="title">Learning Status</div>
+
+<div class="row">
+<span>Learning Mode</span>
+<b>ADVISORY</b>
+</div>
+
+<div class="row">
+<span>Automatic Changes</span>
+<b>DISABLED</b>
+</div>
+
+<div class="row">
+<span>Human Control</span>
+<b>REQUIRED</b>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8787/api/v1/revenue-intelligence/analyze";
+
+
+
+document.querySelectorAll(".nav button").forEach(button=>{
+button.addEventListener("click",()=>{
+document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+button.classList.add("active");
+
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById(button.dataset.page).classList.add("active");
+
+(document.getElementById("title") || {set textContent(v){}}).textContent =
+button.textContent.replace(/^[^A-Za-z]+/,"").trim();
+});
+});
+
+function demo(){
+document.getElementById("request").value=JSON.stringify({
+invoices:[
+{customer_id:"customer-47",amount:200000,outstanding_amount:150000,days_overdue:90},
+{customer_id:"customer-88",amount:500000,outstanding_amount:400000,days_overdue:120}
+],
+payments:[],
+decision_id:"command-center-demo"
+},null,2);
+}
+
+function esc(v){
+return String(v).replace(/[&<>"']/g,c=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#39;"
+}[c]));
+}
+
+function money(value){
+const n = Number(value);
+if(!Number.isFinite(n)) return "₹0";
+return "₹" + n.toLocaleString("en-IN", {
+maximumFractionDigits: 0
+});
+}
+
+function setText(id,value){
+const el=document.getElementById(id);
+if(el) el.textContent=value;
+}
+
+function setHTML(id,value){
+const el=document.getElementById(id);
+if(el) el.innerHTML=value;
+}
+
+
+function renderCustomers360(data){
+    const container =
+        document.getElementById("customers360") ||
+        document.getElementById("customer360") ||
+        document.getElementById("customerTable");
+
+    if(!container) return;
+
+    const risks = Array.isArray(data?.customer_risks)
+        ? data.customer_risks
+        : Array.isArray(data?.risk?.customer_risks)
+            ? data.risk.customer_risks
+            : [];
+
+    if(!risks.length){
+        container.innerHTML =
+            '<div class="empty">Run analysis to populate Customers 360.</div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="customer-360-grid">
+            ${risks.map(customer => `
+                <div class="customer-360-card">
+                    <div class="customer-360-header">
+                        <b>${esc(customer.customer_id || customer.customer || "Unknown")}</b>
+                    </div>
+                    <div class="customer-360-row">
+                        <span>Exposure</span>
+                        <b>${money(customer.exposure ?? customer.outstanding_exposure ?? customer.outstanding_amount)}</b>
+                    </div>
+                    <div class="customer-360-row">
+                        <span>Risk</span>
+                        <b>${customer.risk_level || customer.risk || "—"}</b>
+                    </div>
+                    <div class="customer-360-row">
+                        <span>Priority</span>
+                        <b>${customer.priority || "REVIEW"}</b>
+                    </div>
+                </div>
+            `).join("")}
+        </div>`;
+}
+
+function updateDashboard(data,payload){
+
+const learningData = data.learning || {};
+const outcomeData = data.outcome || {};
+const decisionData = data.decision || {};
+
+setText(
+"learningSignal",
+learningData.learning_signal || "—"
+);
+
+setText(
+"learningEvaluation",
+learningData.evaluation_status || "—"
+);
+
+setText(
+"learningConfidence",
+Math.round(Number(learningData.learning_confidence || 0) * 100) + "%"
+);
+
+setText(
+"learningAction",
+learningData.learning_action || "—"
+);
+
+setText(
+"learningExpected",
+money(
+decisionData.expected_collection ||
+outcomeData.expected_collection ||
+0
+)
+);
+
+setText(
+"learningOutcome",
+outcomeData.status || "PENDING"
+);
+
+setText(
+"learningEvaluationDetail",
+learningData.evaluation_status || "—"
+);
+
+setText(
+"learningSignalDetail",
+learningData.learning_signal || "—"
+);
+
+setText(
+"learningActionDetail",
+learningData.learning_action || "—"
+);
+
+const learningExplanation =
+learningData.evaluation_status === "INSUFFICIENT_DATA"
+? "REVENEX has a prediction, but no actual real-world outcome is available yet. The system therefore does not evaluate accuracy or mutate any model. It is waiting for an observed outcome."
+: learningData.learning_signal
+? "REVENEX has evaluated the available outcome evidence and produced a learning recommendation. Any model change remains subject to human review."
+: "Run an analysis to generate a learning signal.";
+
+setText(
+"learningExplanation",
+learningExplanation
+);
+
+setText(
+"learningTrigger",
+outcomeData.status === "PENDING"
+? "REQUIRED"
+: "AVAILABLE"
+);
+
+
+
+const risk=data.risk||{};
+const decision=data.decision||{};
+const outcome=data.outcome||{};
+const learning=data.learning||{};
+
+(document.getElementById("outstanding") || {set textContent(v){}}).textContent =money(risk.total_outstanding);
+(document.getElementById("risk") || {set textContent(v){}}).textContent =money(risk.total_revenue_at_risk);
+(document.getElementById("expected") || {set textContent(v){}}).textContent =money(decision.expected_collection);
+(document.getElementById("confidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence||0)*100)+"%";
+
+(document.getElementById("action") || {set textContent(v){}}).textContent =
+decision.recommended_action||"—";
+
+(document.getElementById("scenario") || {set textContent(v){}}).textContent =
+decision.scenario||"—";
+
+(document.getElementById("approval") || {set textContent(v){}}).textContent =
+decision.requires_approval?"YES":"NO";
+
+(document.getElementById("learningEngineSignal") || {set textContent(v){}}).textContent =
+learning.learning_signal||"WAIT_FOR_OUTCOME";
+
+(document.getElementById("iExposure") || {set textContent(v){}}).textContent =money(risk.total_outstanding);
+(document.getElementById("iRisk") || {set textContent(v){}}).textContent =money(risk.total_revenue_at_risk);
+(document.getElementById("iRecovery") || {set textContent(v){}}).textContent =money(decision.expected_collection);
+(document.getElementById("iConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence||0)*100)+"%";
+
+(document.getElementById("decisionAction") || {set textContent(v){}}).textContent =
+decision.recommended_action || "—";
+
+(document.getElementById("decisionConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("decisionCollection") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("decisionRemaining") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("decisionActionDetail") || {set textContent(v){}}).textContent =
+decision.recommended_action || "—";
+
+(document.getElementById("decisionScenario") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("decisionConfidenceDetail") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("decisionCollectionDetail") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("decisionRemainingDetail") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("decisionApproval") || {set textContent(v){}}).textContent =
+decision.requires_approval ? "REQUIRED" : "NOT REQUIRED";
+
+(document.getElementById("decisionApprovalDetail") || {set textContent(v){}}).textContent =
+decision.requires_approval ? "YES" : "NO";
+
+const phase18 = data.phase18_impact || {};
+const phase19 = data.phase19_opportunities || {};
+const phase20 = data.phase20_interventions || {};
+const propagation = data.risk_propagation || {};
+
+const propagationItems = Array.isArray(propagation.propagations)
+  ? propagation.propagations
+  : [];
+
+const topPropagation = propagationItems[0] || {};
+
+const opportunityItems = Array.isArray(phase19.opportunities)
+  ? phase19.opportunities
+  : [];
+
+const interventionItems = Array.isArray(phase20.interventions)
+  ? phase20.interventions
+  : [];
+
+const topOpportunity = opportunityItems[0] || {};
+const topIntervention = interventionItems[0] || {};
+
+(document.getElementById("iPropagatedExposure") || {set textContent(v){}})
+  .textContent = money(
+    propagationItems.reduce(
+      (sum, item) => sum + Number(item.propagated_exposure || 0),
+      0
+    )
+  );
+
+(document.getElementById("iPropagationConcentration") || {set textContent(v){}})
+  .textContent = Math.round(
+    Number(topPropagation.concentration_ratio || 0) * 100
+  ) + "%";
+
+(document.getElementById("iPropagationLevel") || {set textContent(v){}})
+  .textContent = topPropagation.propagation_level || "—";
+
+(document.getElementById("iRiskPath") || {set textContent(v){}})
+  .textContent = Array.isArray(topPropagation.risk_path)
+    ? topPropagation.risk_path.join(" → ")
+    : "—";
+
+(document.getElementById("iOpportunityCount") || {set textContent(v){}})
+  .textContent = Number(
+    phase19.total_opportunities || opportunityItems.length || 0
+  );
+
+(document.getElementById("iTopOpportunity") || {set textContent(v){}})
+  .textContent =
+    topOpportunity.entity_id
+      ? `${topOpportunity.entity_id} · ${topOpportunity.opportunity_level || "REVIEW"}`
+      : "—";
+
+(document.getElementById("iIntervention") || {set textContent(v){}})
+  .textContent =
+    topIntervention.intervention_type
+      ? `${topIntervention.intervention_type} · ${topIntervention.recommended_focus || "REVIEW"}`
+      : "—";
+
+const decisionReasons = Array.isArray(data.audit?.rationale)
+  ? data.audit.rationale
+  : [];
+
+(document.getElementById("decisionReasons") || {set innerHTML(v){}}).innerHTML =
+decisionReasons.length
+  ? decisionReasons.map(reason => `
+      <div class="row">
+        <span>• ${esc(reason)}</span>
+      </div>
+    `).join("")
+  : '<div class="empty">No decision explanation available.</div>';
+
+const audit = data.audit || {};
+const auditDecision = data.decision || {};
+
+(document.getElementById("auditDecision") || {set textContent(v){}}).textContent =
+audit.decision || auditDecision.recommended_action || "—";
+
+(document.getElementById("auditScenario") || {set textContent(v){}}).textContent =
+audit.scenario || auditDecision.scenario || "—";
+
+(document.getElementById("auditConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(auditDecision.confidence || 0) * 100) + "%";
+
+(document.getElementById("auditDecisionDetail") || {set textContent(v){}}).textContent =
+audit.decision || auditDecision.recommended_action || "—";
+
+(document.getElementById("auditScenarioDetail") || {set textContent(v){}}).textContent =
+audit.scenario || auditDecision.scenario || "—";
+
+(document.getElementById("auditCollection") || {set textContent(v){}}).textContent =
+money(auditDecision.expected_collection);
+
+(document.getElementById("auditRemaining") || {set textContent(v){}}).textContent =
+money(auditDecision.remaining_exposure);
+
+(document.getElementById("auditConfidenceDetail") || {set textContent(v){}}).textContent =
+Math.round(Number(auditDecision.confidence || 0) * 100) + "%";
+
+const auditEvidence = Array.isArray(audit.evidence)
+  ? audit.evidence
+  : [];
+
+(document.getElementById("auditEvidence") || {set innerHTML(v){}}).innerHTML =
+auditEvidence.length
+  ? auditEvidence.map(item => `
+      <div class="row">
+        <span>✓ ${esc(item)}</span>
+      </div>
+    `).join("")
+  : '<div class="empty">No audit evidence available.</div>';
+
+const auditRationale = Array.isArray(audit.rationale)
+  ? audit.rationale
+  : [];
+
+(document.getElementById("auditRationale") || {set innerHTML(v){}}).innerHTML =
+auditRationale.length
+  ? auditRationale.map(item => `
+      <div class="row">
+        <span>✓ ${esc(item)}</span>
+      </div>
+    `).join("")
+  : '<div class="empty">No audit rationale available.</div>';
+
+const auditStages = Array.isArray(audit.stages)
+  ? audit.stages
+  : [];
+
+(document.getElementById("auditStages") || {set innerHTML(v){}}).innerHTML =
+auditStages.length
+  ? auditStages.map((stage, index) => `
+      <div class="row">
+        <span>${index + 1}. ${esc(stage)}</span>
+        <b class="good">✓</b>
+      </div>
+    `).join("")
+  : '<div class="empty">No audit stages available.</div>';
+
+(document.getElementById("auditConclusion") || {set textContent(v){}}).textContent =
+`REVENEX selected ${audit.scenario || auditDecision.scenario || "the scenario"} `
++ `and recommended ${audit.decision || auditDecision.recommended_action || "a review"} `
++ `with ${Math.round(Number(auditDecision.confidence || 0) * 100)}% confidence. `
++ `The recommendation is explainable, read-only, and requires human approval.`;
+
+const outcomeRecord = data.outcome || {};
+const learningRecord = data.learning || {};
+
+const outcomeStatus =
+  outcome.status || "PENDING";
+
+const expectedCollection =
+  Number(outcome.expected_collection ?? decision.expected_collection ?? 0);
+
+const expectedRemaining =
+  Number(
+    outcome.expected_remaining_exposure ??
+    decision.remaining_exposure ??
+    0
+  );
+
+const actualCollection =
+  outcome.actual_collection;
+
+const actualRemaining =
+  outcome.actual_remaining_exposure;
+
+(document.getElementById("outcomeStatus") || {set textContent(v){}}).textContent =
+  outcomeStatus;
+
+(document.getElementById("outcomeExpected") || {set textContent(v){}}).textContent =
+  money(expectedCollection);
+
+(document.getElementById("outcomeActual") || {set textContent(v){}}).textContent =
+  actualCollection == null ? "NOT AVAILABLE" : money(actualCollection);
+
+(document.getElementById("outcomeLearning") || {set textContent(v){}}).textContent =
+  learningRecord.learning_signal || "WAIT_FOR_OUTCOME";
+
+(document.getElementById("outcomeStatusDetail") || {set textContent(v){}}).textContent =
+  outcomeStatus;
+
+(document.getElementById("outcomeExpectedDetail") || {set textContent(v){}}).textContent =
+  money(expectedCollection);
+
+(document.getElementById("outcomeExpectedRemaining") || {set textContent(v){}}).textContent =
+  money(expectedRemaining);
+
+(document.getElementById("outcomeActualDetail") || {set textContent(v){}}).textContent =
+  actualCollection == null ? "NOT AVAILABLE" : money(actualCollection);
+
+(document.getElementById("outcomeActualRemaining") || {set textContent(v){}}).textContent =
+  actualRemaining == null ? "NOT AVAILABLE" : money(actualRemaining);
+
+(document.getElementById("outcomeEvaluation") || {set textContent(v){}}).textContent =
+  learningRecord.evaluation_status || "INSUFFICIENT_DATA";
+
+(document.getElementById("outcomeLearningDetail") || {set textContent(v){}}).textContent =
+  learningRecord.learning_signal || "WAIT_FOR_OUTCOME";
+
+(document.getElementById("outcomeLearningConfidence") || {set textContent(v){}}).textContent =
+  Math.round(Number(learningRecord.learning_confidence || 0) * 100) + "%";
+
+(document.getElementById("outcomeLearningAction") || {set textContent(v){}}).textContent =
+  learningRecord.learning_action || "WAIT_FOR_MORE_OUTCOMES";
+
+if (actualCollection == null) {
+  (document.getElementById("outcomeComparison") || {set innerHTML(v){}}).innerHTML =
+    '<div class="empty">Actual collection is not available yet. Prediction accuracy will be evaluated after a real outcome is recorded.</div>';
+
+  (document.getElementById("outcomeExplanation") || {set textContent(v){}}).textContent =
+    "REVENEX is waiting for an actual real-world outcome before evaluating prediction accuracy. No actual value is being invented or inferred.";
+} else {
+  const collectionError =
+    expectedCollection - Number(actualCollection);
+
+  (document.getElementById("outcomeComparison") || {set innerHTML(v){}}).innerHTML =
+    '<div class="row"><span>Expected Collection</span><b>'
+    + money(expectedCollection)
+    + '</b></div>'
+    + '<div class="row"><span>Actual Collection</span><b>'
+    + money(actualCollection)
+    + '</b></div>'
+    + '<div class="row"><span>Collection Variance</span><b>'
+    + money(collectionError)
+    + '</b></div>';
+
+  (document.getElementById("outcomeExplanation") || {set textContent(v){}}).textContent =
+    "REVENEX has an actual outcome available and can evaluate the prediction against the observed result.";
+}
+
+(document.getElementById("simulationExpected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("simulationRemaining") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("simulationConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("simulationScenario") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("simulationOutstanding") || {set textContent(v){}}).textContent =
+money(risk.total_outstanding);
+
+(document.getElementById("simulationRisk") || {set textContent(v){}}).textContent =
+money(risk.total_revenue_at_risk);
+
+(document.getElementById("simulationRecovery") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("simulationRemainingDetail") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("simulationScenarioDetail") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("simulationInterpretation") || {set textContent(v){}}).textContent =
+`The ${decision.scenario || "selected"} scenario projects `
++ `${money(decision.expected_collection)} in collection from `
++ `${money(risk.total_outstanding)} of current outstanding exposure, `
++ `leaving ${money(decision.remaining_exposure)} in projected remaining `
++ `exposure. Simulation confidence is `
++ `${Math.round(Number(decision.confidence || 0) * 100)}%. `
++ `This is an advisory scenario only. No financial action is executed.`;
+
+const simulationReasons = Array.isArray(data.audit?.rationale)
+  ? data.audit.rationale
+  : [];
+
+(document.getElementById("simulationReasons") || {set innerHTML(v){}}).innerHTML =
+simulationReasons.length
+  ? simulationReasons.map(reason => `
+      <div class="row">
+        <span>• ${esc(reason)}</span>
+      </div>
+    `).join("")
+  : '<div class="empty">No scenario explanation available.</div>';
+
+(document.getElementById("fExpected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("fRemaining") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("fConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("fScenario") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("fOutstanding") || {set textContent(v){}}).textContent =
+money(risk.total_outstanding);
+
+(document.getElementById("fRisk") || {set textContent(v){}}).textContent =
+money(risk.total_revenue_at_risk);
+
+(document.getElementById("fBaseline") || {set textContent(v){}}).textContent =
+money(risk.expected_collection);
+
+(document.getElementById("fSelected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("fRemainingDetail") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("fConfidenceDetail") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("fScenarioDetail") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("fApproval") || {set textContent(v){}}).textContent =
+decision.requires_approval ? "REQUIRED" : "NOT REQUIRED";
+
+const forecastConfidence =
+Math.round(Number(decision.confidence || 0) * 100);
+
+(document.getElementById("fInterpretation") || {set textContent(v){}}).textContent =
+`REVENEX forecasts ${money(decision.expected_collection)} `
++ `of expected collection under the ${decision.scenario || "selected"} `
++ `scenario, leaving ${money(decision.remaining_exposure)} `
++ `of remaining exposure. Prediction confidence is `
++ `${forecastConfidence}%. This forecast is advisory-only and `
++ `does not execute any financial action.`;
+
+/* FINAL FORECAST SYNC — uses existing analysis data only */
+(document.getElementById("fExpected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("fRemaining") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("fConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("fScenario") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("fOutstanding") || {set textContent(v){}}).textContent =
+money(risk.total_outstanding);
+
+(document.getElementById("fRisk") || {set textContent(v){}}).textContent =
+money(risk.total_revenue_at_risk);
+
+(document.getElementById("fBaseline") || {set textContent(v){}}).textContent =
+money(risk.expected_collection);
+
+(document.getElementById("fSelected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("fRemainingDetail") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("fConfidenceDetail") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence || 0) * 100) + "%";
+
+(document.getElementById("fScenarioDetail") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("fApproval") || {set textContent(v){}}).textContent =
+decision.requires_approval ? "REQUIRED" : "NOT REQUIRED";
+
+(document.getElementById("fInterpretation") || {set textContent(v){}}).textContent =
+`REVENEX forecasts ${money(decision.expected_collection)} `
++ `of expected collection under the ${decision.scenario || "selected"} `
++ `scenario, leaving ${money(decision.remaining_exposure)} `
++ `of remaining exposure. Prediction confidence is `
++ `${Math.round(Number(decision.confidence || 0) * 100)}%. `
++ `This forecast is advisory-only and does not execute any financial action.`;
+
+
+(document.getElementById("iHighRiskCustomers") || {set textContent(v){}}).textContent =
+Number(risk.high_risk_customer_count || 0).toLocaleString("en-IN");
+
+(document.getElementById("iCriticalCustomers") || {set textContent(v){}}).textContent =
+Number(risk.critical_customer_count || 0).toLocaleString("en-IN");
+
+(document.getElementById("iHighRiskExposure") || {set textContent(v){}}).textContent =
+money(risk.high_risk_exposure);
+
+(document.getElementById("iConcentration") || {set textContent(v){}}).textContent =
+(Math.round(Number(risk.concentration_ratio || 0) * 10000) / 100) + "%";
+
+(document.getElementById("iBaselineCollection") || {set textContent(v){}}).textContent =
+money(risk.expected_collection);
+
+(document.getElementById("iScenario") || {set textContent(v){}}).textContent =
+decision.scenario || "—";
+
+(document.getElementById("iAction") || {set textContent(v){}}).textContent =
+decision.recommended_action || "—";
+
+(document.getElementById("iSelectedCollection") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("iRemainingExposure") || {set textContent(v){}}).textContent =
+money(decision.remaining_exposure);
+
+(document.getElementById("iApproval") || {set textContent(v){}}).textContent =
+decision.requires_approval ? "REQUIRED" : "NOT REQUIRED";
+
+(document.getElementById("iSummary") || {set textContent(v){}}).textContent =
+risk.executive_summary || "No executive summary available.";
+
+const reasons = Array.isArray(data.audit?.rationale)
+  ? data.audit.rationale
+  : [];
+
+(document.getElementById("iReasons") || {set innerHTML(v){}}).innerHTML =
+reasons.length
+  ? reasons.map(reason => `
+      <div class="row">
+        <span>• ${esc(reason)}</span>
+      </div>
+    `).join("")
+  : '<div class="empty">No explanation available.</div>';
+
+(document.getElementById("auditData") || {set textContent(v){}}).textContent =
+JSON.stringify(data.audit||{},null,2);
+
+(document.getElementById("collectionExpected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("collectionRisk") || {set textContent(v){}}).textContent =
+money(risk.total_revenue_at_risk);
+
+(document.getElementById("collectionPriority") || {set textContent(v){}}).textContent =
+decision.recommended_action||"—";
+
+(document.getElementById("simulationExpected") || {set textContent(v){}}).textContent =
+money(decision.expected_collection);
+
+(document.getElementById("simulationScenario") || {set textContent(v){}}).textContent =
+decision.scenario||"—";
+
+(document.getElementById("decisionAction") || {set textContent(v){}}).textContent =
+decision.recommended_action||"—";
+
+(document.getElementById("decisionConfidence") || {set textContent(v){}}).textContent =
+Math.round(Number(decision.confidence||0)*100)+"%";
+
+(document.getElementById("decisionApproval") || {set textContent(v){}}).textContent =
+decision.requires_approval?"YES":"NO";
+
+(document.getElementById("outcomeStatus") || {set textContent(v){}}).textContent =
+outcome.status||"PENDING";
+
+(document.getElementById("actualCollection") || {set textContent(v){}}).textContent =
+outcome.actual_collection==null?
+"Not available":
+money(outcome.actual_collection);
+
+(document.getElementById("outcomeLearning") || {set textContent(v){}}).textContent =
+learning.learning_signal||"Waiting for outcome";
+
+(document.getElementById("learningValue") || {set textContent(v){}}).textContent =
+learning.learning_signal||"—";
+
+(document.getElementById("outcomeLearning") || {set textContent(v){}}).textContent =
+learning.learning_signal || "WAIT_FOR_OUTCOME";
+
+(document.getElementById("invoiceTable") || {set innerHTML(v){}}).innerHTML =
+(payload.invoices||[]).map(i=>`
+<tr>
+<td>${esc(i.customer_id)}</td>
+<td>${money(i.amount)}</td>
+<td>${money(i.outstanding_amount)}</td>
+<td>${esc(i.days_overdue??0)} days</td>
+</tr>`).join("")||
+'<tr><td colspan="4" class="empty">No invoices.</td></tr>';
+
+const customers={};
+
+(payload.invoices||[]).forEach(i=>{
+customers[i.customer_id]=
+(customers[i.customer_id]||0)+Number(i.outstanding_amount||0);
+});
+
+(document.getElementById("customersTable") || {set innerHTML(v){}}).innerHTML =
+Object.entries(customers).map(([customer,exposure])=>`
+<tr>
+<td>${esc(customer)}</td>
+<td>${money(exposure)}</td>
+<td class="risk">Review</td>
+<td><b>AI PRIORITY</b></td>
+</tr>`).join("")||
+'<tr><td colspan="4" class="empty">No customers.</td></tr>';
+}
+
+
+
+function renderP2Intelligence(data) {
+    const container =
+        document.getElementById("p2Intelligence");
+
+    if (!container) {
+        return;
+    }
+
+    const p2 = data?.p2_intelligence;
+
+    if (!p2) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const graph = p2.revenue_graph || {};
+    const leakage = p2.leakage || {};
+    const anomalies = p2.anomalies || {};
+    const rootCauses = p2.root_causes || {};
+    const forecast = p2.forecast || {};
+    const forecastDetail = forecast.forecast || {};
+    const safety = p2.safety || {};
+
+    const primaryCause =
+        rootCauses.primary_cause || null;
+
+    container.innerHTML = `
+        <div class="card" style="margin-top:14px">
+            <div class="title">P2 Revenue Intelligence</div>
+
+            <div class="row">
+                <span>Revenue Graph</span>
+                <b>${graph.total_nodes || 0} nodes · ${graph.total_edges || 0} edges</b>
+            </div>
+
+            <div class="row">
+                <span>Connected Customers</span>
+                <b>${graph.connected_customer_count || 0}</b>
+            </div>
+
+            <div class="row">
+                <span>Orphan Payments</span>
+                <b>${graph.orphan_payment_count || 0}</b>
+            </div>
+
+            <div class="row">
+                <span>Revenue Leakage</span>
+                <b>${money(leakage.total_leakage_amount)}</b>
+            </div>
+
+            <div class="row">
+                <span>Leakage Cases</span>
+                <b>${leakage.leakage_count || 0}</b>
+            </div>
+
+            <div class="row">
+                <span>Anomalies</span>
+                <b>${anomalies.total_anomalies || 0}</b>
+            </div>
+
+            <div class="row">
+                <span>Critical Anomalies</span>
+                <b>${anomalies.critical_count || 0}</b>
+            </div>
+
+            <div class="row">
+                <span>Primary Root Cause</span>
+                <b>${esc(primaryCause?.title || "NONE IDENTIFIED")}</b>
+            </div>
+
+            <div class="row">
+                <span>Root Cause Confidence</span>
+                <b>${Number(
+                    primaryCause?.confidence ??
+                    rootCauses.average_confidence ??
+                    0
+                ).toLocaleString("en-IN", {
+                    style: "percent",
+                    maximumFractionDigits: 0
+                })}</b>
+            </div>
+
+            <div class="row">
+                <span>P2 Forecast</span>
+                <b>${money(forecastDetail.projected_revenue)}</b>
+            </div>
+
+            <div class="row">
+                <span>Forecast Trend</span>
+                <b>${esc(forecastDetail.trend || "—")}</b>
+            </div>
+
+            <div class="row">
+                <span>Forecast Confidence</span>
+                <b>${Number(
+                    forecastDetail.confidence || 0
+                ).toLocaleString("en-IN", {
+                    style: "percent",
+                    maximumFractionDigits: 0
+                })}</b>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+                <div class="title">P2 Safety Boundary</div>
+
+                <div class="row">
+                    <span>Read Only</span>
+                    <b>${safety.read_only === true ? "ENABLED" : "UNKNOWN"}</b>
+                </div>
+
+                <div class="row">
+                    <span>Human Review</span>
+                    <b>${safety.human_review_required === true ? "REQUIRED" : "UNKNOWN"}</b>
+                </div>
+
+                <div class="row">
+                    <span>Execution</span>
+                    <b>DISABLED</b>
+                </div>
+
+                <div class="row">
+                    <span>Automatic Action</span>
+                    <b>DISABLED</b>
+                </div>
+
+                <div class="row">
+                    <span>Financial Mutation</span>
+                    <b>DISABLED</b>
+                </div>
+
+                <div class="row">
+                    <span>Provider Mutation</span>
+                    <b>DISABLED</b>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderInvoiceIntelligence(data){
+    const invoices =
+        Array.isArray(data?.invoices)
+            ? data.invoices
+            : [];
+
+    let container =
+        document.getElementById("invoiceIntelligence");
+
+    if(!container){
+        const headings = Array.from(
+            document.querySelectorAll("h1,h2,h3")
+        );
+
+        const heading = headings.find(el =>
+            /invoices?/i.test(el.textContent || "")
+        );
+
+        if(heading){
+            container = document.createElement("div");
+            container.id = "invoiceIntelligence";
+            heading.parentNode.insertBefore(
+                container,
+                heading.nextSibling
+            );
+        }
+    }
+
+    if(!container) return;
+
+    if(!invoices.length){
+        container.innerHTML =
+            '<div class="empty">No invoice intelligence available.</div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="invoice-intelligence-panel">
+            <div class="section-title">Invoice Intelligence</div>
+
+            <div class="invoice-intelligence-table">
+                <div class="invoice-row invoice-header">
+                    <span>Invoice</span>
+                    <span>Customer</span>
+                    <span>Outstanding</span>
+                    <span>Overdue</span>
+                    <span>Risk</span>
+                    <span>Expected Collection</span>
+                    <span>Action</span>
+                </div>
+
+                ${invoices.map(invoice => `
+                    <div class="invoice-row">
+                        <span>
+                            <b>${esc(invoice.invoice_id)}</b>
+                        </span>
+
+                        <span>
+                            ${esc(invoice.customer_id)}
+                        </span>
+
+                        <span>
+                            ${money(invoice.outstanding_amount)}
+                        </span>
+
+                        <span>
+                            ${Number(invoice.days_overdue || 0)} days
+                        </span>
+
+                        <span>
+                            <b>${esc(invoice.risk_level || "—")}</b>
+                        </span>
+
+                        <span>
+                            ${money(invoice.expected_collection)}
+                        </span>
+
+                        <span>
+                            <b>${esc(invoice.recommended_action || "—")}</b>
+                        </span>
+                    </div>
+                `).join("")}
+            </div>
+        </div>`;
+}
+
+
+function renderPaymentIntelligence(data){
+    const payments =
+        Array.isArray(data?.payments)
+            ? data.payments
+            : [];
+
+    const summary =
+        data?.payment_summary || {};
+
+    let container =
+        document.getElementById("paymentIntelligence");
+
+    if(!container){
+        const headings = Array.from(
+            document.querySelectorAll("h1,h2,h3")
+        );
+
+        const heading = headings.find(el =>
+            /payments?/i.test(el.textContent || "")
+        );
+
+        if(heading){
+            container = document.createElement("div");
+            container.id = "paymentIntelligence";
+            heading.parentNode.insertBefore(
+                container,
+                heading.nextSibling
+            );
+        }
+    }
+
+    if(!container) return;
+
+    if(!payments.length){
+        container.innerHTML = `
+            <div class="empty">
+                No payment intelligence available.
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="payment-intelligence-panel">
+
+            <div class="section-title">
+                Payment Intelligence
+            </div>
+
+            <div class="payment-summary">
+                <div>
+                    <span>Total Payments</span>
+                    <b>${summary.total_payments ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Successful</span>
+                    <b>${summary.successful_payments ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Failed</span>
+                    <b>${summary.failed_payments ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Realized Amount</span>
+                    <b>${money(summary.realized_amount)}</b>
+                </div>
+
+                <div>
+                    <span>Success Rate</span>
+                    <b>${Math.round(
+                        Number(summary.success_rate || 0) * 100
+                    )}%</b>
+                </div>
+            </div>
+
+            <div class="payment-intelligence-table">
+
+                <div class="payment-row payment-header">
+                    <span>Payment</span>
+                    <span>Customer</span>
+                    <span>Invoice</span>
+                    <span>Amount</span>
+                    <span>Status</span>
+                    <span>Risk</span>
+                    <span>Signal</span>
+                </div>
+
+                ${payments.map(payment => `
+                    <div class="payment-row">
+
+                        <span>
+                            <b>${esc(payment.payment_id)}</b>
+                        </span>
+
+                        <span>
+                            ${esc(payment.customer_id)}
+                        </span>
+
+                        <span>
+                            ${esc(payment.invoice_id || "—")}
+                        </span>
+
+                        <span>
+                            ${money(payment.amount)}
+                        </span>
+
+                        <span>
+                            ${esc(payment.status)}
+                        </span>
+
+                        <span>
+                            <b>${esc(payment.risk_level)}</b>
+                        </span>
+
+                        <span>
+                            <b>${esc(payment.payment_signal)}</b>
+                        </span>
+
+                    </div>
+                `).join("")}
+
+            </div>
+        </div>`;
+}
+
+
+function renderOrderSubscriptionIntelligence(data){
+    const orders =
+        Array.isArray(data?.orders)
+            ? data.orders
+            : [];
+
+    const subscriptions =
+        Array.isArray(data?.subscriptions)
+            ? data.subscriptions
+            : [];
+
+    const orderSummary =
+        data?.order_summary || {};
+
+    const subscriptionSummary =
+        data?.subscription_summary || {};
+
+    let container =
+        document.getElementById("orderSubscriptionIntelligence");
+
+    if(!container){
+        const headings = Array.from(
+            document.querySelectorAll("h1,h2,h3")
+        );
+
+        const heading = headings.find(el =>
+            /orders?|subscriptions?/i.test(
+                el.textContent || ""
+            )
+        );
+
+        if(heading){
+            container = document.createElement("div");
+            container.id =
+                "orderSubscriptionIntelligence";
+
+            heading.parentNode.insertBefore(
+                container,
+                heading.nextSibling
+            );
+        }
+    }
+
+    if(!container) return;
+
+    container.innerHTML = `
+        <div class="order-subscription-panel">
+
+            <div class="section-title">
+                Orders & Subscription Intelligence
+            </div>
+
+            <div class="payment-summary">
+
+                <div>
+                    <span>Total Orders</span>
+                    <b>${orderSummary.total_orders ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Realized Orders</span>
+                    <b>${orderSummary.realized_orders ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Failed Orders</span>
+                    <b>${orderSummary.failed_orders ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Subscriptions</span>
+                    <b>${subscriptionSummary.total_subscriptions ?? 0}</b>
+                </div>
+
+                <div>
+                    <span>Recurring Exposure</span>
+                    <b>${money(
+                        subscriptionSummary.recurring_revenue_exposure
+                    )}</b>
+                </div>
+
+            </div>
+
+            ${
+                orders.length
+                ? `
+                <div class="payment-intelligence-table">
+
+                    <div class="payment-row payment-header">
+                        <span>Order</span>
+                        <span>Customer</span>
+                        <span>Amount</span>
+                        <span>Status</span>
+                        <span>Realization</span>
+                        <span>Risk</span>
+                        <span>Signal</span>
+                    </div>
+
+                    ${orders.map(order => `
+                        <div class="payment-row">
+
+                            <span>
+                                <b>${esc(order.order_id)}</b>
+                            </span>
+
+                            <span>
+                                ${esc(order.customer_id)}
+                            </span>
+
+                            <span>
+                                ${money(order.amount)}
+                            </span>
+
+                            <span>
+                                ${esc(order.status)}
+                            </span>
+
+                            <span>
+                                ${Math.round(
+                                    Number(
+                                        order.realization_ratio || 0
+                                    ) * 100
+                                )}%
+                            </span>
+
+                            <span>
+                                <b>${esc(order.risk_level)}</b>
+                            </span>
+
+                            <span>
+                                <b>${esc(order.order_signal)}</b>
+                            </span>
+
+                        </div>
+                    `).join("")}
+
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                subscriptions.length
+                ? `
+                <div class="payment-intelligence-table">
+
+                    <div class="payment-row payment-header">
+                        <span>Subscription</span>
+                        <span>Customer</span>
+                        <span>Status</span>
+                        <span>Plan</span>
+                        <span>Remaining Cycles</span>
+                        <span>Renewal Risk</span>
+                        <span>Exposure</span>
+                    </div>
+
+                    ${subscriptions.map(subscription => `
+                        <div class="payment-row">
+
+                            <span>
+                                <b>${esc(
+                                    subscription.subscription_id
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${esc(subscription.customer_id)}
+                            </span>
+
+                            <span>
+                                ${esc(subscription.status)}
+                            </span>
+
+                            <span>
+                                ${money(
+                                    subscription.plan_amount
+                                )}
+                            </span>
+
+                            <span>
+                                ${subscription.remaining_cycles}
+                            </span>
+
+                            <span>
+                                <b>${esc(
+                                    subscription.renewal_risk
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${money(
+                                    subscription.recurring_revenue_exposure
+                                )}
+                            </span>
+
+                        </div>
+                    `).join("")}
+
+                </div>
+                `
+                : ""
+            }
+
+        </div>`;
+}
+
+
+function renderRefundSettlementCash(data){
+    const refunds =
+        Array.isArray(data?.refunds)
+            ? data.refunds
+            : [];
+
+    const settlements =
+        Array.isArray(data?.settlements)
+            ? data.settlements
+            : [];
+
+    const refundSummary =
+        data?.refund_summary || {};
+
+    const settlementSummary =
+        data?.settlement_summary || {};
+
+    const cash =
+        data?.cash || {};
+
+    let container =
+        document.getElementById("refundSettlementCash");
+
+    if(!container){
+        const headings = Array.from(
+            document.querySelectorAll("h1,h2,h3")
+        );
+
+        const heading = headings.find(el =>
+            /refund|settlement|cash/i.test(
+                el.textContent || ""
+            )
+        );
+
+        if(heading){
+            container = document.createElement("div");
+            container.id = "refundSettlementCash";
+            heading.parentNode.insertBefore(
+                container,
+                heading.nextSibling
+            );
+        }
+    }
+
+    if(!container) return;
+
+    container.innerHTML = `
+        <div class="order-subscription-panel">
+
+            <div class="section-title">
+                Refunds · Settlements · Cash Intelligence
+            </div>
+
+            <div class="payment-summary">
+
+                <div>
+                    <span>Refund Value</span>
+                    <b>${money(
+                        refundSummary.refund_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Pending Refund Exposure</span>
+                    <b>${money(
+                        refundSummary.pending_refund_exposure
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Settlement Value</span>
+                    <b>${money(
+                        settlementSummary.settlement_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Pending Settlements</span>
+                    <b>${money(
+                        settlementSummary.pending_settlement_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Cash At Risk</span>
+                    <b>${money(
+                        cash.cash_at_risk
+                    )}</b>
+                </div>
+
+            </div>
+
+            ${
+                refunds.length
+                ? `
+                <div class="payment-intelligence-table">
+
+                    <div class="payment-row payment-header">
+                        <span>Refund</span>
+                        <span>Customer</span>
+                        <span>Amount</span>
+                        <span>Status</span>
+                        <span>Risk</span>
+                        <span>Signal</span>
+                    </div>
+
+                    ${refunds.map(refund => `
+                        <div class="payment-row">
+                            <span>
+                                <b>${esc(
+                                    refund.refund_id
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${esc(refund.customer_id)}
+                            </span>
+
+                            <span>
+                                ${money(refund.amount)}
+                            </span>
+
+                            <span>
+                                ${esc(refund.status)}
+                            </span>
+
+                            <span>
+                                <b>${esc(
+                                    refund.risk_level
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    refund.refund_signal
+                                )}
+                            </span>
+                        </div>
+                    `).join("")}
+
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                settlements.length
+                ? `
+                <div class="payment-intelligence-table">
+
+                    <div class="payment-row payment-header">
+                        <span>Settlement</span>
+                        <span>Amount</span>
+                        <span>Expected</span>
+                        <span>Variance</span>
+                        <span>Status</span>
+                        <span>Risk</span>
+                        <span>Signal</span>
+                    </div>
+
+                    ${settlements.map(settlement => `
+                        <div class="payment-row">
+                            <span>
+                                <b>${esc(
+                                    settlement.settlement_id
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${money(
+                                    settlement.amount
+                                )}
+                            </span>
+
+                            <span>
+                                ${money(
+                                    settlement.expected_amount
+                                )}
+                            </span>
+
+                            <span>
+                                ${money(
+                                    settlement.variance
+                                )}
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    settlement.status
+                                )}
+                            </span>
+
+                            <span>
+                                <b>${esc(
+                                    settlement.risk_level
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    settlement.settlement_signal
+                                )}
+                            </span>
+                        </div>
+                    `).join("")}
+
+                </div>
+                `
+                : ""
+            }
+
+        </div>`;
+}
+
+
+function renderPayoutTreasury(data){
+
+    const payouts =
+        Array.isArray(data?.payouts)
+            ? data.payouts
+            : [];
+
+    const summary =
+        data?.payout_summary || {};
+
+    const treasury =
+        data?.treasury || {};
+
+    let container =
+        document.getElementById(
+            "payoutTreasury"
+        );
+
+    if(!container){
+        const headings =
+            Array.from(
+                document.querySelectorAll(
+                    "h1,h2,h3"
+                )
+            );
+
+        const heading =
+            headings.find(el =>
+                /payout|treasury|cash/i.test(
+                    el.textContent || ""
+                )
+            );
+
+        if(heading){
+            container =
+                document.createElement("div");
+
+            container.id =
+                "payoutTreasury";
+
+            heading.parentNode.insertBefore(
+                container,
+                heading.nextSibling
+            );
+        }
+    }
+
+    if(!container) return;
+
+    container.innerHTML = `
+
+        <div class="order-subscription-panel">
+
+            <div class="section-title">
+                Payout · Treasury Intelligence
+            </div>
+
+            <div class="payment-summary">
+
+                <div>
+                    <span>Payout Value</span>
+                    <b>${money(
+                        summary.payout_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Pending Payouts</span>
+                    <b>${money(
+                        summary.pending_payout_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Exception Value</span>
+                    <b>${money(
+                        summary.exception_payout_value
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Near-Term Cash Position</span>
+                    <b>${money(
+                        treasury.near_term_cash_position
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Liquidity Exposure</span>
+                    <b>${money(
+                        treasury.liquidity_exposure
+                    )}</b>
+                </div>
+
+                <div>
+                    <span>Liquidity Signal</span>
+                    <b>${esc(
+                        treasury.liquidity_signal || "—"
+                    )}</b>
+                </div>
+
+            </div>
+
+            ${
+                payouts.length
+                ? `
+                <div class="payment-intelligence-table">
+
+                    <div class="payment-row payment-header">
+                        <span>Payout</span>
+                        <span>Amount</span>
+                        <span>Status</span>
+                        <span>Destination</span>
+                        <span>Risk</span>
+                        <span>Signal</span>
+                    </div>
+
+                    ${payouts.map(payout => `
+
+                        <div class="payment-row">
+
+                            <span>
+                                <b>${esc(
+                                    payout.payout_id
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${money(
+                                    payout.amount
+                                )}
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    payout.status
+                                )}
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    payout.destination
+                                )}
+                            </span>
+
+                            <span>
+                                <b>${esc(
+                                    payout.risk_level
+                                )}</b>
+                            </span>
+
+                            <span>
+                                ${esc(
+                                    payout.payout_signal
+                                )}
+                            </span>
+
+                        </div>
+
+                    `).join("")}
+
+                </div>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+async function analyze(){
+
+const status=document.getElementById("status");
+const api=document.getElementById("apiStatus");
+
+let payload;
+
+try{
+payload=JSON.parse(document.getElementById("request").value);
+}catch(error){
+status.textContent="Invalid JSON: "+error.message;
+api.textContent="ERROR";
+return;
+}
+
+status.textContent="Analyzing revenue state...";
+api.textContent="RUNNING";
+
+try{
+
+console.log("REVENEX: sending analysis request",payload);
+
+const response=await fetch(API,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(payload)
+});
+
+console.log("REVENEX: HTTP status",response.status);
+
+const raw=await response.text();
+
+console.log("REVENEX: raw API response",raw);
+
+let data;
+
+try{
+data=JSON.parse(raw);
+}catch(error){
+throw new Error("API returned invalid JSON");
+}
+
+if(!response.ok){
+throw new Error(
+data.message ||
+data.error ||
+"HTTP "+response.status
+);
+}
+
+console.log("REVENEX: parsed API data",data);
+
+if(
+!data.safety ||
+data.safety.execution_allowed!==false ||
+data.safety.automatic_action!==false ||
+data.safety.financial_mutation!==false ||
+data.safety.provider_mutation!==false
+){
+throw new Error("Safety contract violation");
+}
+
+console.log("REVENEX: safety contract verified");
+
+try{
+
+updateDashboard(data,payload);
+
+}catch(renderError){
+
+console.error(
+"REVENEX DASHBOARD RENDER ERROR:",
+renderError
+);
+
+throw new Error(
+"Dashboard rendering failed: "+
+(renderError.message || renderError)
+);
+
+}
+
+status.textContent=
+"✓ Analysis complete · READ-ONLY · HUMAN APPROVAL REQUIRED";
+
+api.textContent="READY";
+
+renderInvoiceIntelligence(data);
+renderPaymentIntelligence(data);
+renderOrderSubscriptionIntelligence(data);
+renderRefundSettlementCash(data);
+renderPayoutTreasury(data);
+renderP2Intelligence(data);
+console.log("REVENEX: dashboard updated successfully");
+
+}catch(error){
+
+console.error("REVENEX ANALYZE ERROR:",error);
+
+status.textContent=
+"ERROR: "+(error.message || error);
+
+api.textContent="ERROR";
+
+}
+
+}
+
+</script>
+
+<script>
+/* REVENEX_CUSTOMER360_SUMMARY_WIRING */
+(function () {
+  function money(value) {
+    return "₹" + Number(value || 0).toLocaleString("en-IN");
+  }
+
+  function updateCustomer360Summary() {
+    const table = document.getElementById("customersTable");
+    if (!table) return;
+
+    const rows = Array.from(table.querySelectorAll("tr"))
+      .filter(row => row.querySelectorAll("td").length >= 4);
+
+    const customers = rows.map(row => {
+      const cells = row.querySelectorAll("td");
+      return {
+        customer: cells[0]?.textContent?.trim() || "",
+        exposureText: cells[1]?.textContent?.trim() || "",
+        risk: cells[2]?.textContent?.trim()?.toUpperCase() || "",
+        priority: cells[3]?.textContent?.trim()?.toUpperCase() || ""
+      };
+    }).filter(x => x.customer && !/run analysis/i.test(x.customer));
+
+    let exposure = 0;
+
+    customers.forEach(customer => {
+      const raw = customer.exposureText
+        .replace(/[₹,\s]/g, "")
+        .replace(/[^\d.-]/g, "");
+
+      const value = Number(raw);
+      if (Number.isFinite(value)) exposure += value;
+    });
+
+    const highRisk = customers.filter(x =>
+      /HIGH|CRITICAL|REVIEW/.test(x.risk)
+    ).length;
+
+    const priority = customers.filter(x =>
+      /AI PRIORITY|PRIORITY/.test(x.priority)
+    ).length;
+
+    const count = document.getElementById("customer360Count");
+    const total = document.getElementById("customer360Exposure");
+    const risk = document.getElementById("customer360HighRisk");
+    const ai = document.getElementById("customer360Priority");
+
+    if (count) count.textContent = customers.length;
+    if (total) total.textContent = money(exposure);
+    if (risk) risk.textContent = highRisk;
+    if (ai) ai.textContent = priority;
+  }
+
+  window.updateCustomer360Summary = updateCustomer360Summary;
+
+  const observer = new MutationObserver(function () {
+    updateCustomer360Summary();
+  });
+
+  function init() {
+    const table = document.getElementById("customersTable");
+    if (!table) return;
+
+    observer.observe(table, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    updateCustomer360Summary();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+
+<script>
+/* REVENEX_CUSTOMER360_ROW_GOVERNANCE */
+(function () {
+
+  function enhanceCustomerRows() {
+    const table = document.getElementById("customersTable");
+    if (!table) return;
+
+    const rows = Array.from(table.querySelectorAll("tr"));
+
+    rows.forEach(function (row) {
+      const cells = row.querySelectorAll("td");
+
+      /*
+       * Existing renderer provides:
+       * Customer | Exposure | Risk | Priority
+       *
+       * We add:
+       * Decision | Governance
+       */
+
+      if (cells.length < 4) return;
+
+      if (row.dataset.revenexGovernance === "true") return;
+
+      const customer = cells[0].textContent.trim();
+
+      if (!customer || /run analysis/i.test(customer)) return;
+
+      const risk = cells[2].textContent.trim().toUpperCase();
+
+      const decision = document.createElement("td");
+      decision.className = "revenex-customer-decision";
+
+      if (/HIGH|CRITICAL|REVIEW/.test(risk)) {
+        decision.innerHTML =
+          '<strong>RECOVERY REVIEW</strong>';
+      } else {
+        decision.innerHTML =
+          '<span>MONITOR</span>';
+      }
+
+      const governance = document.createElement("td");
+      governance.className = "revenex-customer-governance";
+
+      governance.innerHTML =
+        '<strong>APPROVAL REQUIRED</strong>' +
+        '<small>Execution disabled</small>';
+
+      row.appendChild(decision);
+      row.appendChild(governance);
+
+      row.dataset.revenexGovernance = "true";
+    });
+  }
+
+  function initCustomerGovernance() {
+    const table = document.getElementById("customersTable");
+    if (!table) return;
+
+    enhanceCustomerRows();
+
+    const observer = new MutationObserver(function () {
+      enhanceCustomerRows();
+    });
+
+    observer.observe(table, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    window.revenexEnhanceCustomerRows = enhanceCustomerRows;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initCustomerGovernance
+    );
+  } else {
+    initCustomerGovernance();
+  }
+
+})();
+</script>
+
+
+
+
+
+<script>
+(function () {
+
+  function money(value) {
+    const n = Number(String(value || "")
+      .replace(/[₹,\s]/g, "")
+      .replace(/[^\d.-]/g, ""));
+
+    return Number.isFinite(n)
+      ? "₹" + n.toLocaleString("en-IN")
+      : "₹0";
+  }
+
+  function openCustomer(row) {
+
+    const cells = row.querySelectorAll("td");
+
+    if (cells.length < 3) return;
+
+    const customer = cells[0].textContent.trim();
+
+    if (!customer || /run analysis/i.test(customer)) {
+      return;
+    }
+
+    const exposure = cells[1].textContent.trim();
+    const risk = cells[2].textContent.trim();
+    const priority = cells[3]
+      ? cells[3].textContent.trim()
+      : "AI PRIORITY";
+
+    const panel = document.getElementById("customer360Detail");
+
+    if (!panel) {
+      console.error("[REVENEX] Customer 360 detail panel missing");
+      return;
+    }
+
+    document.getElementById("c360DetailCustomer").textContent = customer;
+
+    document.getElementById("c360DetailExposure").textContent =
+      money(exposure);
+
+    document.getElementById("c360DetailRisk").textContent =
+      risk || "REVIEW";
+
+    document.getElementById("c360DetailPriority").textContent =
+      priority || "AI PRIORITY";
+
+    document.getElementById("c360DetailDecision").textContent =
+      "RECOVERY REVIEW";
+
+    document.getElementById("c360DetailGovernance").textContent =
+      "APPROVAL REQUIRED";
+
+    document.getElementById("c360DetailReason").textContent =
+      "REVENEX identified this customer as a review priority based on the available revenue exposure and risk signal. The recommendation is advisory-only and requires human approval.";
+
+    panel.style.display = "block";
+
+    panel.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+  }
+
+  function wireCustomerRows() {
+
+    const table = document.getElementById("customersTable");
+
+    if (!table) return;
+
+    table.querySelectorAll("tr").forEach(function (row) {
+
+      const cells = row.querySelectorAll("td");
+
+      if (cells.length < 3) return;
+
+      const customer = cells[0].textContent.trim();
+
+      if (!customer || /run analysis/i.test(customer)) return;
+
+      if (row.dataset.revenexCustomer360 === "true") return;
+
+      row.dataset.revenexCustomer360 = "true";
+
+      row.style.cursor = "pointer";
+
+      row.addEventListener("click", function () {
+        openCustomer(row);
+      });
+
+    });
+  }
+
+  function initCustomer360() {
+
+    const table = document.getElementById("customersTable");
+
+    if (!table) {
+      console.warn("[REVENEX] customersTable not ready");
+      return;
+    }
+
+    wireCustomerRows();
+
+    const observer = new MutationObserver(function () {
+      wireCustomerRows();
+    });
+
+    observer.observe(table, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    console.log("[REVENEX] Customer 360 intelligence ready");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initCustomer360
+    );
+  } else {
+    initCustomer360();
+  }
+
+})();
+</script>
+
+
+
+
+
+
+
+</body>
+</html>

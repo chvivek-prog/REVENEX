@@ -1,0 +1,666 @@
+"""
+REVENEX Stage 44 — Revenue Intelligence API Service.
+
+Transport-independent service boundary for the REVENEX intelligence
+pipeline.
+
+The service accepts revenue state and returns intelligence.
+It never executes financial/provider mutations.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from typing import Any
+
+from revenex.audit.decision_trace import explain_decision
+from revenex.decision.engine import decide_recovery
+from revenex.learning.engine import build_learning_report
+from revenex.invoice.intelligence import build_invoice_intelligence
+from revenex.payment.intelligence import build_payment_intelligence, summarize_payment_behavior
+from revenex.order.intelligence import build_order_intelligence, summarize_order_behavior
+from revenex.subscription.intelligence import build_subscription_intelligence, summarize_subscription_behavior
+from revenex.outcome.tracking import (
+    OutcomeEvent,
+    evaluate_outcome,
+)
+from revenex.persistence.outcome_store import OutcomeStore
+from revenex.risk.revenue_risk import build_revenue_risk_report
+from revenex.refund.intelligence import build_refund_intelligence, summarize_refund_behavior
+from revenex.settlement.intelligence import build_settlement_intelligence, summarize_settlement_behavior
+from revenex.cash.intelligence import build_cash_intelligence
+from revenex.payout.intelligence import build_payout_intelligence, summarize_payout_behavior
+from revenex.treasury.intelligence import build_treasury_intelligence
+from revenex.reconciliation.engine import reconcile_payments, summarize_reconciliation
+from revenex.intelligence.p2_integration import build_p2_intelligence
+from revenex.phase18 import prioritize_revenue_impact
+from revenex.phase19 import detect_revenue_opportunities
+from revenex.phase20 import recommend_interventions
+from revenex.phase20.risk_propagation import analyze_risk_propagation
+
+
+@dataclass(frozen=True)
+class RevenueIntelligenceResponse:
+    decision_id: str
+    risk: dict[str, Any]
+    decision: dict[str, Any]
+    audit: dict[str, Any]
+    outcome: dict[str, Any]
+    learning: dict[str, Any]
+    invoices: list[dict[str, Any]]
+    payments: list[dict[str, Any]]
+    payment_summary: dict[str, Any]
+    orders: list[dict[str, Any]]
+    order_summary: dict[str, Any]
+    subscriptions: list[dict[str, Any]]
+
+    refunds: list[dict[str, Any]]
+    refund_summary: dict[str, Any]
+    settlements: list[dict[str, Any]]
+    settlement_summary: dict[str, Any]
+    cash: dict[str, Any]
+    payouts: list[dict[str, Any]]
+    payout_summary: dict[str, Any]
+    treasury: dict[str, Any]
+    subscription_summary: dict[str, Any]
+    safety: dict[str, bool]
+    reconciliation: dict[str, Any]
+    p2_intelligence: dict[str, Any]
+    phase18_impact: dict[str, Any]
+    phase19_opportunities: dict[str, Any]
+    phase20_interventions: dict[str, Any]
+    risk_propagation: dict[str, Any]
+
+
+def analyze_revenue(
+    invoices: list[dict[str, Any]],
+    payments: list[dict[str, Any]],
+    decision_id: str = "api-decision",
+    store: OutcomeStore | None = None,
+) -> RevenueIntelligenceResponse:
+    """
+    Canonical read-only Revenue Intelligence API operation.
+    """
+
+    risk_report = build_revenue_risk_report(
+        invoices,
+        payments,
+    )
+
+    invoice_intelligence = build_invoice_intelligence(
+        invoices,
+    )
+    payment_intelligence = build_payment_intelligence(
+        payments,
+        invoices,
+    )
+
+    orders = invoices and [
+        item
+        for item in invoices
+        if item.get("order_id") is not None
+    ] or []
+
+    payout_records = [
+        item
+        for item in payments
+        if item.get("payout_id") is not None
+        or str(item.get("type", "")).lower() == "payout"
+    ]
+
+    refund_records = [
+        item
+        for item in invoices
+        if item.get("refund_id") is not None
+        or str(item.get("type", "")).lower() == "refund"
+    ]
+
+    settlement_records = [
+        item
+        for item in payments
+        if item.get("settlement_id") is not None
+        or str(item.get("type", "")).lower() == "settlement"
+    ]
+
+    subscription_records = [
+        item
+        for item in invoices
+        if item.get("subscription_id") is not None
+    ]
+
+    payout_intelligence = build_payout_intelligence(
+        payout_records,
+    )
+
+    payout_summary = summarize_payout_behavior(
+        payout_intelligence,
+    )
+
+    refund_intelligence = build_refund_intelligence(
+        refund_records,
+    )
+
+    refund_summary = summarize_refund_behavior(
+        refund_intelligence,
+    )
+
+    settlement_intelligence = (
+        build_settlement_intelligence(
+            settlement_records,
+        )
+    )
+
+    settlement_summary = (
+        summarize_settlement_behavior(
+            settlement_intelligence,
+        )
+    )
+
+    cash_intelligence = build_cash_intelligence(
+        payments=payments,
+        refunds=refund_records,
+        settlements=settlement_records,
+    )
+
+    treasury_intelligence = build_treasury_intelligence(
+        captured_payment_value=(
+            cash_intelligence["captured_payment_value"]
+            if "cash_intelligence" in locals()
+            else 0.0
+        ),
+        refund_value=(
+            cash_intelligence["refund_value"]
+            if "cash_intelligence" in locals()
+            else 0.0
+        ),
+        pending_settlement_value=(
+            settlement_summary[
+                "pending_settlement_value"
+            ]
+            if "settlement_summary" in locals()
+            else 0.0
+        ),
+        pending_payout_value=(
+            payout_summary[
+                "pending_payout_value"
+            ]
+            if "payout_summary" in locals()
+            else 0.0
+        ),
+        receivables_exposure=(
+            risk_report.total_outstanding
+            if hasattr(
+                risk_report,
+                "total_outstanding",
+            )
+            else 0.0
+        ),
+    )
+
+    order_intelligence = build_order_intelligence(
+        orders,
+        payments,
+        invoices,
+    )
+
+    order_summary = summarize_order_behavior(
+        order_intelligence,
+    )
+
+    subscription_intelligence = (
+        build_subscription_intelligence(
+            subscription_records,
+            payments,
+        )
+    )
+
+    subscription_summary = (
+        summarize_subscription_behavior(
+            subscription_intelligence,
+        )
+    )
+
+
+    payment_summary = summarize_payment_behavior(
+        payment_intelligence,
+    )
+
+    # P2 ADDITIVE INTEGRATION.
+    # Existing intelligence calculations remain untouched.
+    p2_intelligence = build_p2_intelligence(
+        invoices=invoices,
+        payments=payments,
+        orders=orders,
+        refunds=refund_records,
+        settlements=settlement_records,
+        subscriptions=subscription_records,
+        payouts=payout_records,
+    )
+
+    risk_score = max(
+        (
+            risk.late_payment_risk
+            for risk in risk_report.customer_risks
+        ),
+        default=0.0,
+    )
+
+    decision = decide_recovery(
+        risk_report.total_outstanding,
+        risk_score,
+    )
+
+    audit = explain_decision(
+        decision
+    )
+
+    outcome_store = store or OutcomeStore()
+
+    stored_outcome = outcome_store.create_outcome(
+        decision_id=decision_id,
+        customer_id="portfolio",
+        expected_collection=decision.expected_collection,
+        expected_remaining_exposure=decision.remaining_exposure,
+    )
+
+    from revenex.outcome.tracking import OutcomeEvent
+
+    outcome_event = OutcomeEvent(
+        decision_id=stored_outcome.decision_id,
+        customer_id=stored_outcome.customer_id,
+        expected_collection=stored_outcome.expected_collection,
+        actual_collection=stored_outcome.actual_collection,
+        expected_remaining_exposure=(
+            stored_outcome.expected_remaining_exposure
+        ),
+        actual_remaining_exposure=(
+            stored_outcome.actual_remaining_exposure
+        ),
+        status=stored_outcome.status,
+        evidence=(
+            "API analysis created a pending outcome.",
+        ),
+    )
+
+    evaluation = evaluate_outcome(
+        outcome_event
+    )
+
+    learning_report = build_learning_report(
+        (evaluation,)
+    )
+
+    # ----------------------------------------------------------
+    # PHASE 18–20.3 — ADDITIVE REVENUE INTELLIGENCE
+    # ----------------------------------------------------------
+    # Build normalized portfolio records from the canonical
+    # invoice intelligence already produced by this API.
+    intelligence_records = []
+
+    for index, invoice in enumerate(invoice_intelligence, start=1):
+        entity_id = str(
+            invoice.get("customer_id")
+            or invoice.get("customer")
+            or invoice.get("invoice_id")
+            or f"invoice-{index}"
+        )
+
+        exposure = float(
+            invoice.get("outstanding_amount")
+            or invoice.get("outstanding")
+            or invoice.get("amount")
+            or 0
+        )
+
+        expected_recovery = min(
+            exposure,
+            float(
+                invoice.get("expected_recovery")
+                or invoice.get("expected_collection")
+                or 0
+            ),
+        )
+
+        intelligence_records.append(
+            {
+                "entity_id": entity_id,
+                "exposure": exposure,
+                "expected_recovery": expected_recovery,
+                "urgency": float(
+                    invoice.get("urgency")
+                    or invoice.get("risk_urgency")
+                    or 0
+                ),
+                "confidence": float(
+                    invoice.get("confidence")
+                    or invoice.get("prediction_confidence")
+                    or 0
+                ),
+                "evidence_quality": float(
+                    invoice.get("evidence_quality")
+                    or invoice.get("evidence_score")
+                    or 0
+                ),
+            }
+        )
+
+    impact_report = prioritize_revenue_impact(intelligence_records)
+    opportunity_report = detect_revenue_opportunities(
+        intelligence_records
+    )
+    intervention_report = recommend_interventions(
+        intelligence_records
+    )
+    propagation_report = analyze_risk_propagation(
+        intelligence_records
+    )
+
+    phase18_payload = {
+        "opportunities": [
+            item.__dict__ if hasattr(item, "__dict__") else item
+            for item in impact_report.opportunities
+        ],
+        "total_opportunities": len(impact_report.opportunities),
+    }
+
+    phase19_payload = {
+        "opportunities": [
+            item.__dict__ if hasattr(item, "__dict__") else item
+            for item in opportunity_report.opportunities
+        ],
+        "total_opportunities": len(opportunity_report.opportunities),
+    }
+
+    phase20_payload = {
+        "interventions": [
+            item.__dict__ if hasattr(item, "__dict__") else item
+            for item in intervention_report.interventions
+        ],
+        "total_interventions": intervention_report.total_interventions,
+    }
+
+    propagation_payload = {
+        "propagations": [
+            item.__dict__ if hasattr(item, "__dict__") else item
+            for item in propagation_report.propagations
+        ],
+        "total_propagations": len(propagation_report.propagations),
+    }
+
+    return RevenueIntelligenceResponse(
+        decision_id=decision_id,
+        risk={
+            "total_outstanding": risk_report.total_outstanding,
+            "expected_collection": risk_report.expected_collection,
+            "total_revenue_at_risk": (
+                risk_report.total_revenue_at_risk
+            ),
+            "high_risk_exposure": (
+                risk_report.high_risk_exposure
+            ),
+            "critical_risk_exposure": (
+                risk_report.critical_risk_exposure
+            ),
+            "high_risk_customer_count": (
+                risk_report.high_risk_customer_count
+            ),
+            "critical_customer_count": (
+                risk_report.critical_customer_count
+            ),
+            "concentration_ratio": (
+                risk_report.concentration_ratio
+            ),
+            "executive_summary": (
+                risk_report.executive_summary
+            ),
+        },
+        decision={
+            "scenario": (
+                decision.scenario.value
+                if decision.scenario is not None
+                else None
+            ),
+            "recommended_action": (
+                decision.recommended_action
+            ),
+            "expected_collection": (
+                decision.expected_collection
+            ),
+            "remaining_exposure": (
+                decision.remaining_exposure
+            ),
+            "confidence": decision.confidence,
+            "requires_approval": (
+                decision.requires_approval
+            ),
+        },
+        audit={
+            "decision": audit.decision,
+            "scenario": audit.scenario,
+            "rationale": list(audit.rationale),
+            "evidence": list(audit.evidence),
+            "stages": list(audit.stages),
+        },
+        outcome={
+            "status": stored_outcome.status,
+            "expected_collection": (
+                stored_outcome.expected_collection
+            ),
+            "actual_collection": (
+                stored_outcome.actual_collection
+            ),
+            "expected_remaining_exposure": (
+                stored_outcome.expected_remaining_exposure
+            ),
+            "actual_remaining_exposure": (
+                stored_outcome.actual_remaining_exposure
+            ),
+        },
+        invoices=invoice_intelligence,
+        payments=payment_intelligence,
+        payment_summary=payment_summary,
+        orders=order_intelligence,
+        order_summary=order_summary,
+        subscriptions=subscription_intelligence,
+        refunds=refund_intelligence,
+        refund_summary=refund_summary,
+        settlements=settlement_intelligence,
+        settlement_summary=settlement_summary,
+        cash=cash_intelligence,
+        payouts=payout_intelligence,
+        payout_summary=payout_summary,
+        treasury=treasury_intelligence,
+        subscription_summary=subscription_summary,
+        learning={
+            "evaluation_status": (
+                evaluation.status.value
+            ),
+            "learning_signal": (
+                evaluation.learning_signal
+            ),
+            "learning_action": (
+                "WAIT_FOR_MORE_OUTCOMES"
+                if learning_report.evaluated_count == 0
+                else "REVIEW"
+            ),
+            "learning_confidence": (
+                learning_report.learning_confidence
+            ),
+        },
+        safety={
+            "execution_allowed": False,
+            "automatic_action": False,
+            "financial_mutation": False,
+            "provider_mutation": False,
+        },
+        reconciliation={
+            "status": "AVAILABLE",
+            "mode": "READ_ONLY",
+            "webhook_execution": "DISABLED",
+            "financial_mutation": "DISABLED",
+        },
+        p2_intelligence=p2_intelligence,
+        phase18_impact=phase18_payload,
+        phase19_opportunities=phase19_payload,
+        phase20_interventions=phase20_payload,
+        risk_propagation=propagation_payload,
+    )
+
+
+
+def record_revenue_outcome(
+    *,
+    decision_id: str,
+    actual_collection: float,
+    actual_remaining_exposure: float,
+    store: OutcomeStore | None = None,
+) -> dict[str, Any]:
+    """
+    Record a real-world outcome and evaluate the original prediction.
+
+    This operation is observational only. It does not execute,
+    mutate financial state, mutate providers, or mutate models.
+    """
+    outcome_store = store or OutcomeStore()
+
+    stored_outcome = outcome_store.get_outcome(decision_id)
+
+    if stored_outcome is None:
+        raise KeyError(
+            f"Unknown decision_id: {decision_id}"
+        )
+
+    if (
+        stored_outcome.actual_collection is not None
+        or stored_outcome.actual_remaining_exposure is not None
+    ):
+        raise ValueError(
+            f"Outcome already recorded for decision_id: {decision_id}"
+        )
+
+    stored_outcome = outcome_store.record_outcome(
+        decision_id=decision_id,
+        actual_collection=actual_collection,
+        actual_remaining_exposure=actual_remaining_exposure,
+        status="OBSERVED",
+    )
+
+    outcome_event = OutcomeEvent(
+        decision_id=stored_outcome.decision_id,
+        customer_id=stored_outcome.customer_id,
+        expected_collection=stored_outcome.expected_collection,
+        actual_collection=stored_outcome.actual_collection,
+        expected_remaining_exposure=(
+            stored_outcome.expected_remaining_exposure
+        ),
+        actual_remaining_exposure=(
+            stored_outcome.actual_remaining_exposure
+        ),
+        status=stored_outcome.status,
+        evidence=(
+            "Real-world outcome recorded through the API.",
+        ),
+    )
+
+    evaluation = evaluate_outcome(outcome_event)
+
+    evaluation_id = outcome_store.record_evaluation(
+        decision_id=decision_id,
+        status=evaluation.status.value,
+        collection_variance=evaluation.collection_variance,
+        collection_accuracy=evaluation.collection_accuracy,
+        exposure_variance=evaluation.exposure_variance,
+        learning_signal=evaluation.learning_signal,
+    )
+
+    learning_signal_id = outcome_store.record_learning_signal(
+        decision_id=decision_id,
+        signal=evaluation.learning_signal,
+        strength=(
+            0.0
+            if evaluation.collection_accuracy is None
+            else evaluation.collection_accuracy
+        ),
+        evidence="; ".join(evaluation.evidence),
+    )
+
+    learning_report = build_learning_report(
+        (evaluation,)
+    )
+
+    return {
+        "decision_id": decision_id,
+        "outcome": {
+            "status": stored_outcome.status,
+            "expected_collection": (
+                stored_outcome.expected_collection
+            ),
+            "actual_collection": (
+                stored_outcome.actual_collection
+            ),
+            "expected_remaining_exposure": (
+                stored_outcome.expected_remaining_exposure
+            ),
+            "actual_remaining_exposure": (
+                stored_outcome.actual_remaining_exposure
+            ),
+        },
+        "evaluation": {
+            "id": evaluation_id,
+            "status": evaluation.status.value,
+            "collection_variance": (
+                evaluation.collection_variance
+            ),
+            "collection_accuracy": (
+                evaluation.collection_accuracy
+            ),
+            "exposure_variance": (
+                evaluation.exposure_variance
+            ),
+            "learning_signal": evaluation.learning_signal,
+            "evidence": list(evaluation.evidence),
+        },
+        "learning": {
+            "evaluation_status": evaluation.status.value,
+            "learning_signal": evaluation.learning_signal,
+            "learning_confidence": (
+                learning_report.learning_confidence
+            ),
+            "evaluated_count": (
+                learning_report.evaluated_count
+            ),
+            "learning_action": (
+                "WAIT_FOR_MORE_OUTCOMES"
+                if learning_report.evaluated_count == 0
+                else "REVIEW"
+            ),
+        },
+        "safety": {
+            "execution_allowed": False,
+            "automatic_action": False,
+            "financial_mutation": False,
+            "provider_mutation": False,
+            "model_mutation": False,
+        },
+        "governance": {
+            "actual_data_source": "OBSERVED_OUTCOME",
+            "model_mutation": "DISABLED",
+            "financial_mutation": "DISABLED",
+            "provider_mutation": "DISABLED",
+            "human_review": "REQUIRED",
+        },
+        "ids": {
+            "evaluation_id": evaluation_id,
+            "learning_signal_id": learning_signal_id,
+        },
+    }
+
+
+def response_to_dict(
+    response: RevenueIntelligenceResponse,
+) -> dict[str, Any]:
+    """
+    Serialize the transport-independent response.
+    """
+
+    return asdict(response)

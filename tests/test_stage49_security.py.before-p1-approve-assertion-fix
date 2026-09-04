@@ -1,0 +1,126 @@
+from pathlib import Path
+
+from revenex.api.security import (
+    DEFAULT_SECURITY_POLICY,
+    FORBIDDEN_MUTATION_FIELDS,
+    contains_forbidden_mutation_fields,
+    security_headers,
+    validate_request_size,
+    validate_safety_policy,
+)
+
+
+def test_default_security_policy_is_read_only():
+    policy = DEFAULT_SECURITY_POLICY
+
+    assert policy.read_only is True
+    assert policy.execution_allowed is False
+    assert policy.automatic_action is False
+    assert policy.financial_mutation is False
+    assert policy.provider_mutation is False
+
+
+def test_security_policy_is_valid():
+    valid, error = validate_safety_policy()
+
+    assert valid is True
+    assert error == ""
+
+
+def test_security_headers_exist():
+    headers = security_headers()
+
+    assert headers["X-Content-Type-Options"] == "nosniff"
+    assert headers["X-Frame-Options"] == "DENY"
+    assert headers["Referrer-Policy"] == "no-referrer"
+    assert headers["Cache-Control"] == "no-store"
+    assert "default-src" in headers["Content-Security-Policy"]
+
+
+def test_request_size_limit():
+    valid, error = validate_request_size(
+        1000
+    )
+
+    assert valid is True
+    assert error == ""
+
+
+def test_request_size_limit_rejects_large_payload():
+    valid, error = validate_request_size(
+        DEFAULT_SECURITY_POLICY.max_request_bytes + 1
+    )
+
+    assert valid is False
+    assert "exceeds" in error
+
+
+def test_negative_content_length_rejected():
+    valid, error = validate_request_size(-1)
+
+    assert valid is False
+
+
+def test_mutation_fields_are_detected():
+    for field in FORBIDDEN_MUTATION_FIELDS:
+        assert contains_forbidden_mutation_fields(
+            {field: True}
+        )
+
+
+def test_normal_request_has_no_mutation_fields():
+    assert not contains_forbidden_mutation_fields(
+        {
+            "invoices": [],
+            "payments": [],
+            "decision_id": "safe-49",
+        }
+    )
+
+
+def test_security_module_contains_no_secret_material():
+    text = Path(
+        "revenex/api/security.py"
+    ).read_text()
+
+    forbidden_literals = (
+        "sk_live_",
+        "sk_test_",
+        "password=",
+        "api_key=",
+        "secret=",
+    )
+
+    lowered = text.lower()
+
+    for literal in forbidden_literals:
+        assert literal not in lowered
+
+
+def test_frontend_does_not_enable_execution():
+    text = Path(
+        "frontend/revenue_command_center.html"
+    ).read_text()
+
+    assert "execute_payment" not in text
+    assert "capture_payment" not in text
+    assert "refund_payment" not in text
+    assert "approve" not in text
+
+
+def test_http_server_has_request_limit():
+    text = Path(
+        "revenex/api/http_server.py"
+    ).read_text()
+
+    assert "2_000_000" in text
+    assert "request_too_large" in text
+
+
+def test_http_server_has_read_only_header():
+    text = Path(
+        "revenex/api/http_server.py"
+    ).read_text()
+
+    assert "X-REVENEX-Safety" in text
+    assert "READ-ONLY" in text
