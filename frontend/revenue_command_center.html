@@ -16685,25 +16685,15 @@ window.addEventListener("revenex-analysis-updated", function () {
 
       var mobile = window.innerWidth <= 700;
 
-      var loginVisible = false;
-
-      if(login){
-
-        var style = window.getComputedStyle(login);
-
-        loginVisible =
-          style.display !== "none" &&
-          !login.hidden &&
-          login.getAttribute("aria-hidden") !== "true";
-
-      }
+      var authenticated =
+        sessionStorage.getItem("revenex_authenticated") === "true";
 
       /*
-       * MOBILE + LOGGED IN = SHOW HAMBURGER
+       * MOBILE + AUTHENTICATED = SHOW HAMBURGER
        * MOBILE + LOGIN = HIDE HAMBURGER
        * DESKTOP = HIDE HAMBURGER
        */
-      if(mobile && !loginVisible){
+      if(mobile && authenticated){
 
         button.style.display = "flex";
 
