@@ -3305,6 +3305,8 @@ strong,b{
 
 
 <style id="REVENEX_MOBILE_FINAL">
+#revenexMobileMenuButton[hidden]{display:none !important;}
+
 @media(max-width:700px){
 
   html,
@@ -16662,7 +16664,7 @@ window.addEventListener("revenex-analysis-updated", function () {
     document.body.appendChild(backdrop);
     document.body.appendChild(drawer);
 
-    function close(){
+    function closeMenu(){
 
       drawer.classList.remove("open");
       backdrop.classList.remove("open");
@@ -16672,35 +16674,49 @@ window.addEventListener("revenex-analysis-updated", function () {
 
     button.addEventListener("click",function(){
 
-      var open = drawer.classList.toggle("open");
+      var open = !drawer.classList.contains("open");
 
+      drawer.classList.toggle("open",open);
       backdrop.classList.toggle("open",open);
       button.setAttribute("aria-expanded",open ? "true" : "false");
 
     });
 
-    backdrop.addEventListener("click",close);
+    backdrop.addEventListener("click",closeMenu);
+
+    function loginIsVisible(){
+
+      if(!login) return false;
+
+      var cs = window.getComputedStyle(login);
+
+      return (
+        cs.display !== "none" &&
+        !login.hidden &&
+        login.getAttribute("aria-hidden") !== "true"
+      );
+
+    }
 
     function sync(){
 
-      var mobile = window.innerWidth <= 700;
+      if(window.innerWidth <= 700){
 
-      var authenticated =
-        sessionStorage.getItem("revenex_authenticated") === "true";
+        if(loginIsVisible()){
 
-      /*
-       * MOBILE + AUTHENTICATED = SHOW HAMBURGER
-       * MOBILE + LOGIN = HIDE HAMBURGER
-       * DESKTOP = HIDE HAMBURGER
-       */
-      if(mobile && authenticated){
+          button.hidden = true;
+          closeMenu();
 
-        button.style.display = "flex";
+        }else{
+
+          button.hidden = false;
+
+        }
 
       }else{
 
-        button.style.display = "none";
-        close();
+        button.hidden = true;
+        closeMenu();
 
       }
 
@@ -16724,7 +16740,7 @@ window.addEventListener("revenex-analysis-updated", function () {
 
     }
 
-    setInterval(sync,500);
+    setInterval(sync,300);
 
   }
 
