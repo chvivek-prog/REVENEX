@@ -3301,25 +3301,20 @@ strong,b{
 <style id="REVENEX_BACK_TO_DASHBOARD_V1">.rx-back-dashboard{display:inline-flex!important;width:max-content!important;max-width:max-content!important;min-width:0!important;height:34px!important;min-height:34px!important;max-height:34px!important;box-sizing:border-box!important;align-items:center!important;justify-content:center!important;align-self:flex-start!important;justify-self:start!important;flex:0 0 auto!important;grid-column:auto!important;gap:7px!important;margin:0 0 14px 0!important;padding:0 13px!important;border:1px solid rgba(148,163,184,.22)!important;border-radius:8px!important;background:rgba(15,23,42,.72)!important;color:#cbd5e1!important;font-size:12px!important;font-weight:700!important;letter-spacing:.02em!important;line-height:1!important;cursor:pointer!important;transition:all .2s ease!important}.rx-back-dashboard:hover{background:rgba(30,41,59,.95)!important;border-color:rgba(96,165,250,.45)!important;color:#fff!important;transform:translateY(-1px)!important}</style>
 
 
-<style id="REVENEX_CLEAN_MOBILE_ROOT_FIX">
-@media (max-width:700px){
 
-  html,body{
-    width:100%;
-    max-width:100%;
-    margin:0;
-    padding:0;
-    overflow-x:hidden !important;
-  }
 
+
+<style id="REVENEX_MOBILE_FINAL">
+@media(max-width:700px){
+
+  html,
   body{
-    min-width:0 !important;
-  }
-
-  /* DASHBOARD: use the real existing layout */
-  .app{
     width:100% !important;
+    max-width:100% !important;
     min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow-x:hidden !important;
   }
 
   .sidebar{
@@ -3334,19 +3329,12 @@ strong,b{
     padding:0 !important;
   }
 
-  /* Give the hamburger its own safe header space */
   .top{
     width:100% !important;
     min-width:0 !important;
     max-width:100% !important;
     box-sizing:border-box !important;
     padding:82px 18px 22px !important;
-    margin:0 !important;
-  }
-
-  .top > div{
-    min-width:0 !important;
-    max-width:100% !important;
   }
 
   #title{
@@ -3354,48 +3342,36 @@ strong,b{
     overflow-wrap:anywhere !important;
   }
 
-  /* Prevent cards/grids from creating a second mobile width */
-  .main *,
-  .main *::before,
-  .main *::after{
-    box-sizing:border-box;
-  }
-
-  .main img,
-  .main svg,
-  .main canvas,
-  .main iframe{
-    max-width:100% !important;
-  }
-
-  .main table{
-    max-width:100% !important;
-  }
-
-  /* CLEAN MOBILE HAMBURGER */
-  #revenexCleanMobileButton{
+  /* REAL HAMBURGER */
+  #revenexMobileMenuButton{
     position:fixed !important;
     top:12px !important;
     left:12px !important;
+    z-index:2147483647 !important;
+
     width:58px !important;
     height:58px !important;
-    padding:0 !important;
-    margin:0 !important;
+
     display:none;
+    flex-direction:column !important;
     align-items:center !important;
     justify-content:center !important;
-    flex-direction:column !important;
     gap:6px !important;
-    border:1px solid rgba(99,168,255,.35) !important;
+
+    padding:0 !important;
+    margin:0 !important;
+
+    border:1px solid rgba(99,168,255,.4) !important;
     border-radius:15px !important;
+
     background:#102b4b !important;
-    color:#fff !important;
-    z-index:2147483000 !important;
-    box-shadow:0 10px 30px rgba(0,0,0,.35) !important;
+    color:white !important;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.4) !important;
     cursor:pointer !important;
   }
 
-  #revenexCleanMobileButton span{
+  #revenexMobileMenuButton span{
     display:block !important;
     width:30px !important;
     height:4px !important;
@@ -3403,74 +3379,91 @@ strong,b{
     background:#fff !important;
   }
 
-  #revenexCleanMobileDrawer{
+  /* DRAWER */
+  #revenexMobileDrawer{
     position:fixed !important;
     top:0 !important;
     left:0 !important;
     bottom:0 !important;
+
     width:min(300px,82vw) !important;
     max-width:82vw !important;
+
     padding:82px 14px 20px !important;
     box-sizing:border-box !important;
+
     overflow-y:auto !important;
     overflow-x:hidden !important;
+
     background:#0b1421 !important;
     border-right:1px solid rgba(255,255,255,.08) !important;
-    box-shadow:18px 0 50px rgba(0,0,0,.45) !important;
+
     transform:translateX(-105%) !important;
     transition:transform .22s ease !important;
-    z-index:2147482999 !important;
+
+    z-index:2147483646 !important;
+    box-shadow:18px 0 50px rgba(0,0,0,.5) !important;
   }
 
-  #revenexCleanMobileDrawer.open{
+  #revenexMobileDrawer.open{
     transform:translateX(0) !important;
   }
 
-  #revenexCleanMobileDrawer button{
+  #revenexMobileDrawer button{
     display:block !important;
     width:100% !important;
     min-height:48px !important;
+
     margin:4px 0 !important;
     padding:12px 14px !important;
+
     border:0 !important;
     border-radius:10px !important;
+
     background:transparent !important;
     color:#dbe5f2 !important;
+
     text-align:left !important;
     font:inherit !important;
     cursor:pointer !important;
   }
 
-  #revenexCleanMobileDrawer button:hover,
-  #revenexCleanMobileDrawer button:active{
-    background:rgba(99,168,255,.12) !important;
+  #revenexMobileDrawer button:active{
+    background:rgba(99,168,255,.14) !important;
   }
 
-  #revenexCleanMobileBackdrop{
+  #revenexMobileBackdrop{
     position:fixed !important;
     inset:0 !important;
+
     display:none !important;
+
     background:rgba(0,0,0,.48) !important;
-    z-index:2147482998 !important;
+
+    z-index:2147483645 !important;
   }
 
-  #revenexCleanMobileBackdrop.open{
+  #revenexMobileBackdrop.open{
     display:block !important;
   }
 
-  /* LOGIN: never vertically center a screen taller than the phone */
+  /* LOGIN MUST NEVER SHOW THE HAMBURGER */
   #revenexLogin{
     position:fixed !important;
     inset:0 !important;
+
     width:100% !important;
     height:100dvh !important;
     min-height:100dvh !important;
-    max-width:100% !important;
+
     box-sizing:border-box !important;
+
     display:flex !important;
     align-items:flex-start !important;
     justify-content:center !important;
+
     padding:16px !important;
+
     overflow-x:hidden !important;
     overflow-y:auto !important;
   }
@@ -3480,6 +3473,7 @@ strong,b{
     max-width:1080px !important;
     min-height:0 !important;
     height:auto !important;
+
     margin:0 auto !important;
     flex-shrink:0 !important;
   }
@@ -3499,10 +3493,10 @@ strong,b{
   }
 }
 
-@media (min-width:701px){
-  #revenexCleanMobileButton,
-  #revenexCleanMobileDrawer,
-  #revenexCleanMobileBackdrop{
+@media(min-width:701px){
+  #revenexMobileMenuButton,
+  #revenexMobileDrawer,
+  #revenexMobileBackdrop{
     display:none !important;
   }
 }
@@ -16609,95 +16603,115 @@ window.addEventListener("revenex-analysis-updated", function () {
 </script>
 
 
-<script id="REVENEX_CLEAN_MOBILE_ROOT_FIX_SCRIPT">
+
+
+
+<button
+  id="revenexMobileMenuButton"
+  type="button"
+  aria-label="Open navigation"
+  aria-expanded="false">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+
+<script id="REVENEX_MOBILE_FINAL_SCRIPT">
 (function(){
 
-  function init(){
+  function setup(){
 
-    if(document.getElementById("revenexCleanMobileButton")) return;
-
+    var button = document.getElementById("revenexMobileMenuButton");
     var login = document.getElementById("revenexLogin");
-    var nav = document.querySelector(".sidebar .nav");
+    var originalNav = document.querySelector(".sidebar .nav");
 
-    if(!nav) return;
+    if(!button || !originalNav) return;
 
-    var button = document.createElement("button");
-    button.id = "revenexCleanMobileButton";
-    button.type = "button";
-    button.setAttribute("aria-label","Open navigation");
-    button.innerHTML = "<span></span><span></span><span></span>";
+    if(document.getElementById("revenexMobileDrawer")) return;
 
     var backdrop = document.createElement("div");
-    backdrop.id = "revenexCleanMobileBackdrop";
+    backdrop.id = "revenexMobileBackdrop";
 
     var drawer = document.createElement("nav");
-    drawer.id = "revenexCleanMobileDrawer";
+    drawer.id = "revenexMobileDrawer";
     drawer.setAttribute("aria-label","Mobile navigation");
 
-    Array.from(nav.querySelectorAll("button[data-page]")).forEach(function(original){
+    Array.prototype.forEach.call(
+      originalNav.querySelectorAll("button[data-page]"),
+      function(original){
 
-      var item = document.createElement("button");
-      item.type = "button";
-      item.textContent = original.textContent.trim();
+        var item = document.createElement("button");
+        item.type = "button";
+        item.textContent = original.textContent.trim();
 
-      item.addEventListener("click",function(){
+        item.addEventListener("click",function(){
 
-        original.click();
+          original.click();
 
-        drawer.classList.remove("open");
-        backdrop.classList.remove("open");
+          drawer.classList.remove("open");
+          backdrop.classList.remove("open");
+          button.setAttribute("aria-expanded","false");
 
-      });
+        });
 
-      drawer.appendChild(item);
+        drawer.appendChild(item);
+      }
+    );
 
-    });
+    document.body.appendChild(backdrop);
+    document.body.appendChild(drawer);
 
-    function closeMenu(){
+    function close(){
+
       drawer.classList.remove("open");
       backdrop.classList.remove("open");
+      button.setAttribute("aria-expanded","false");
+
     }
 
     button.addEventListener("click",function(){
 
-      if(drawer.classList.contains("open")){
-        closeMenu();
-      }else{
-        drawer.classList.add("open");
-        backdrop.classList.add("open");
-      }
+      var open = drawer.classList.toggle("open");
+
+      backdrop.classList.toggle("open",open);
+      button.setAttribute("aria-expanded",open ? "true" : "false");
 
     });
 
-    backdrop.addEventListener("click",closeMenu);
-
-    document.body.appendChild(backdrop);
-    document.body.appendChild(drawer);
-    document.body.appendChild(button);
+    backdrop.addEventListener("click",close);
 
     function sync(){
 
       var mobile = window.innerWidth <= 700;
 
-      var loggedIn = true;
+      var loginVisible = false;
 
       if(login){
+
         var style = window.getComputedStyle(login);
-        loggedIn =
-          style.display === "none" ||
-          login.hidden ||
-          login.getAttribute("aria-hidden") === "true";
+
+        loginVisible =
+          style.display !== "none" &&
+          !login.hidden &&
+          login.getAttribute("aria-hidden") !== "true";
+
       }
 
       /*
-       * Hamburger exists ONLY on the dashboard.
-       * It is completely hidden while the login screen is visible.
+       * MOBILE + LOGGED IN = SHOW HAMBURGER
+       * MOBILE + LOGIN = HIDE HAMBURGER
+       * DESKTOP = HIDE HAMBURGER
        */
-      if(mobile && loggedIn){
+      if(mobile && !loginVisible){
+
         button.style.display = "flex";
+
       }else{
+
         button.style.display = "none";
-        closeMenu();
+        close();
+
       }
 
     }
@@ -16710,7 +16724,12 @@ window.addEventListener("revenex-analysis-updated", function () {
 
       new MutationObserver(sync).observe(login,{
         attributes:true,
-        attributeFilter:["style","class","hidden","aria-hidden"]
+        attributeFilter:[
+          "style",
+          "class",
+          "hidden",
+          "aria-hidden"
+        ]
       });
 
     }
@@ -16720,9 +16739,13 @@ window.addEventListener("revenex-analysis-updated", function () {
   }
 
   if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded",init);
+
+    document.addEventListener("DOMContentLoaded",setup);
+
   }else{
-    init();
+
+    setup();
+
   }
 
 })();
