@@ -4131,11 +4131,11 @@ Run an analysis from Command Center.
 <div class="card" style="margin-top:14px">
 <div class="title">Revenue Risk Propagation</div>
 <div class="row">
-  <span>Propagated Exposure</span>
+  <span>Potential Propagated Exposure</span>
   <b class="risk" id="iPropagatedExposure">₹0</b>
 </div>
 <div class="row">
-  <span>Risk Concentration</span>
+  <span>Highest Customer Concentration</span>
   <b id="iPropagationConcentration">0%</b>
 </div>
 <div class="row">
@@ -4145,6 +4145,10 @@ Run an analysis from Command Center.
 <div class="row">
   <span>Primary Risk Path</span>
   <b id="iRiskPath">—</b>
+</div>
+<div class="sub" style="margin-top:10px;">
+  Potential propagated exposure is a modeled downstream risk relationship.
+  It is advisory and may exceed current customer exposure.
 </div>
 </div>
 
@@ -4220,7 +4224,7 @@ Provider Mutation
     <strong id="customer360Exposure">—</strong>
   </div>
   <div class="customer360-stat">
-    <span>High Risk</span>
+    <span>Review Required</span>
     <strong id="customer360HighRisk">—</strong>
   </div>
   <div class="customer360-stat">
@@ -4304,106 +4308,6 @@ Provider Mutation
 
 
 
-<div class="layout">
-
-<div>
-
-<div class="card">
-<div class="title">Revenue Forecast</div>
-
-<div class="row">
-<span>Total Outstanding</span>
-<b id="legacy_fOutstanding">₹0</b>
-</div>
-
-<div class="row">
-<span>Revenue At Risk</span>
-<b class="risk" id="legacy_fRisk">₹0</b>
-</div>
-
-<div class="row">
-<span>Baseline Expected Collection</span>
-<b id="legacy_fBaseline">₹0</b>
-</div>
-
-<div class="row">
-<span>Selected Scenario Collection</span>
-<b class="good" id="legacy_fSelected">₹0</b>
-</div>
-
-<div class="row">
-<span>Remaining Exposure</span>
-<b class="risk" id="legacy_fRemainingDetail">₹0</b>
-</div>
-
-</div>
-
-<div class="card" style="margin-top:14px">
-<div class="title">Forecast Interpretation</div>
-<div id="legacy_fInterpretation" class="sub">
-Run an analysis from Command Center.
-</div>
-</div>
-
-</div>
-
-<div>
-
-<div class="card">
-<div class="title">Prediction Status</div>
-
-<div class="row">
-<span>Prediction</span>
-<b class="good">AVAILABLE</b>
-</div>
-
-<div class="row">
-<span>Confidence</span>
-<b id="legacy_fConfidenceDetail">0%</b>
-</div>
-
-<div class="row">
-<span>Scenario</span>
-<b id="legacy_fScenarioDetail">—</b>
-</div>
-
-<div class="row">
-<span>Approval Required</span>
-<b id="legacy_fApproval">—</b>
-</div>
-
-</div>
-
-<div class="card" style="margin-top:14px">
-<div class="title">Forecast Safety</div>
-
-<div class="safetygrid">
-
-<div class="safe">
-Execution
-<b>DISABLED</b>
-</div>
-
-<div class="safe">
-Automatic Action
-<b>DISABLED</b>
-</div>
-
-<div class="safe">
-Financial Mutation
-<b>DISABLED</b>
-</div>
-
-<div class="safe">
-Provider Mutation
-<b>DISABLED</b>
-</div>
-
-</div>
-</div>
-
-</div>
-</div>
 </section>
 
 <!-- SIMULATION -->
