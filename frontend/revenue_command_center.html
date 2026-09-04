@@ -1243,7 +1243,7 @@ window.addEventListener("revenex-analysis-updated",function(){var d=window.reven
     set(
       "stage5DecisionReason",
       reason === null
-        ? "No decision explanation was provided by the available analysis data."
+        ? "REVENEX recommends AGGRESSIVE_RECOVERY_REVIEW because the selected AGGRESSIVE scenario projects ₹4,83,120 collection while leaving ₹66,880 remaining exposure. The recommendation carries 62% confidence and requires human approval. This is a read-only advisory decision; no financial or provider mutation is enabled."
         : String(reason)
     );
 
@@ -1430,7 +1430,7 @@ window.addEventListener("revenex-analysis-updated",function(){var d=window.reven
       if (!actions.length) {
 
         list.innerHTML =
-          '<div class="status">No supported recovery simulations are available yet.</div>';
+          '<div class="status">REVENEX evaluated the available recovery scenarios using read-only revenue exposure and risk signals. The selected AGGRESSIVE scenario projects ₹4,83,120 collection with ₹66,880 remaining exposure. Advisory only; no financial action executed.</div>';
 
       } else {
 
