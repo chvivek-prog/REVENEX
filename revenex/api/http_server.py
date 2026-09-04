@@ -693,4 +693,8 @@ def serve(
 
 
 if __name__ == "__main__":
-    serve()
+    import os
+    serve(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "10000")),
+    )
