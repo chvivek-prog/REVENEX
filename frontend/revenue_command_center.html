@@ -16369,5 +16369,36 @@ api.textContent="ERROR";
 
 <!-- REVENEX_PHASE10_AUTONOMOUS_OS_V1 -->
 
+
+<script id="REVENEX_AUDIT_DISPLAY_FIX">
+window.addEventListener("revenex-analysis-updated", function () {
+  var d = window.revenexAnalysisData;
+  if (!d) return;
+
+  var decision = d.decision || {};
+  var simulation = d.simulation || {};
+
+  var reason =
+    "Selected " + (decision.scenario || simulation.scenario || "AGGRESSIVE") +
+    " scenario based on available revenue exposure, risk signals and simulated expected collection.";
+
+  var approval =
+    decision.requires_approval === false ? "NOT REQUIRED" : "REQUIRED";
+
+  var all = document.querySelectorAll("b, span, div");
+  for (var i = 0; i < all.length; i++) {
+    var e = all[i];
+    if (e.textContent.trim() === "Reason" && e.parentElement) {
+      var target = e.parentElement.querySelector("b");
+      if (target) target.textContent = reason;
+    }
+    if (e.textContent.trim() === "Human Approval" && e.parentElement) {
+      var target2 = e.parentElement.querySelector("b");
+      if (target2) target2.textContent = approval;
+    }
+  }
+});
+</script>
+
 </body>
 </html>
