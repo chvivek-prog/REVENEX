@@ -187,6 +187,20 @@ class RevenueHTTPRequestHandler(
         self.end_headers()
 
     def do_GET(self) -> None:
+        if self.path in ("/", "/index.html"):
+            frontend = Path(__file__).resolve().parents[2] / "frontend" / "revenue_command_center.html"
+            try:
+                encoded = frontend.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/html; charset=utf-8")
+                self.send_header("Content-Length", str(len(encoded)))
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.end_headers()
+                self.wfile.write(encoded)
+            except OSError:
+                self._json_response(500, {"error": "frontend_not_available"})
+            return
+
         if self.path == "/health":
             self._json_response(
                 200,
